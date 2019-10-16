@@ -8,7 +8,12 @@ public class VolumeLoader : MonoBehaviour
     Texture3D texture;
     private Material cubeMaterial;
 
-    [SerializeField] public string materialTexture;
+    [SerializeField] public string MaterialTextureName;
+    public float Density = 1;
+    public int SamplingQuality = 64;
+
+    private const string DENSITY_TAG = "_Density";
+    private const string SAMPLE_QUALITY_TAG = "_SamplingQuality";
 
     private void Awake()
     {
@@ -19,8 +24,10 @@ public class VolumeLoader : MonoBehaviour
     void Start()
     {
         texture = CreateTexture3D(slices);
-        Debug.Log("Setting texture on material: " + materialTexture);
-        cubeMaterial.SetTexture(materialTexture, texture);
+        Debug.Log("Setting texture on material: " + MaterialTextureName);
+        cubeMaterial.SetTexture(MaterialTextureName, texture);
+        cubeMaterial.SetFloat(DENSITY_TAG, Density);
+        cubeMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
     }
 
     Texture3D CreateTexture3D(Texture2D [] imageStack)
