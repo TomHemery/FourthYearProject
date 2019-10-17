@@ -8,11 +8,12 @@ public class SliderListener : MonoBehaviour
 
     public Slider DensitySlider;
     public Slider QualitySlider;
+    public Slider SpacingSlider;
 
     public Text DensityText;
     public Text QualityText;
+    public Text SpacingText;
 
-    // Start is called before the first frame update
     void Start()
     {
         OnDensitySliderChanged();
@@ -27,5 +28,10 @@ public class SliderListener : MonoBehaviour
     public void OnQualitySliderChanged() {
         VolumeLoader.Instance.SetQuality((int)QualitySlider.value);
         QualityText.text = "" + QualitySlider.value;
+    }
+
+    public void OnSpacingSliderChanged() {
+        VolumeLoader.Instance.SetXScale(SpacingSlider.value);
+        SpacingText.text = "" + SpacingSlider.value;
     }
 }

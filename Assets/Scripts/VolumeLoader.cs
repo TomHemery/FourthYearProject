@@ -8,11 +8,14 @@ public class VolumeLoader : MonoBehaviour
     public Texture2D[] slices;
     private Texture3D[] textures;
     private Material[] materials;
+    private GameObject[] renderCubes;
 
     [SerializeField] public string MaterialTextureName;
+    public int RendererSpacing = 2;
+    public bool SplitRGB = true;
+
     private float Density = 1;
     private int SamplingQuality = 64;
-    public int RendererSpacing = 10;
 
     public static VolumeLoader Instance { private set; get; } = null;
 
@@ -22,12 +25,19 @@ public class VolumeLoader : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        textures = CreateRGBTexture3D(slices);
-        materials = new Material[3];
+
+        if (SplitRGB)
+            textures = CreateRGBTexture3D(slices);
+        else
+            textures = CreateTexture3D(slices);
+
+        materials = new Material[textures.Length];
+        renderCubes = new GameObject[textures.Length];
         Debug.Log("Spawning prefabs");
         for (int i = 0; i < textures.Length; i++)
         {
             GameObject renderCube = Instantiate(rendererPrefab, new Vector3(i * RendererSpacing, 0, 0), Quaternion.identity);
+            renderCubes[i] = renderCube;
             Material cubeMaterial = renderCube.GetComponent<Renderer>().material;
             cubeMaterial.SetTexture(MaterialTextureName, textures[i]);
             cubeMaterial.SetFloat(DENSITY_TAG, Density);
@@ -60,7 +70,14 @@ public class VolumeLoader : MonoBehaviour
         }
     }
 
-
+    public void SetXScale(float scale) {
+        Transform t;
+        
+        for (int i = 0; i < renderCubes.Length; i++) {
+            t = renderCubes[i].transform;
+            t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
+        }
+    }
 
     //Creates one 3D texture with all colour information
     Texture3D [] CreateTexture3D(Texture2D [] imageStack)
