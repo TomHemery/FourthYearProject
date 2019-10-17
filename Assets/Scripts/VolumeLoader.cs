@@ -1,18 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class VolumeLoader : MonoBehaviour
 {
-    public GameObject rendererPrefab;
-    public Texture2D[] slices;
+    
     private Texture3D[] textures;
     private Material[] materials;
     private GameObject[] renderCubes;
+    private Texture2D[] slices;
 
     [SerializeField] public string MaterialTextureName;
     public int RendererSpacing = 2;
     public bool SplitRGB = true;
+    public GameObject rendererPrefab;
+    public string sourceFolderName;
 
     private float Density = 1;
     private int SamplingQuality = 64;
@@ -26,6 +29,8 @@ public class VolumeLoader : MonoBehaviour
     {
         if (Instance == null) Instance = this;
 
+        slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
+
         if (SplitRGB)
             textures = CreateRGBTexture3D(slices);
         else
@@ -33,7 +38,6 @@ public class VolumeLoader : MonoBehaviour
 
         materials = new Material[textures.Length];
         renderCubes = new GameObject[textures.Length];
-        Debug.Log("Spawning prefabs");
         for (int i = 0; i < textures.Length; i++)
         {
             GameObject renderCube = Instantiate(rendererPrefab, new Vector3(i * RendererSpacing, 0, 0), Quaternion.identity);
