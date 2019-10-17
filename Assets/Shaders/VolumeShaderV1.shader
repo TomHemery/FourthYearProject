@@ -10,8 +10,11 @@
 		CGINCLUDE
 		#include "UnityCG.cginc"
 
+		//sets how far as a proportion of max distance a ray will advance at each step
 		int _SamplingQuality;
+		//the 3D texture to be rendered
 		sampler3D _MainTex;
+		//
 		float _Density;
 
 		struct v2f
