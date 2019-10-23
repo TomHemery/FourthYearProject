@@ -7,8 +7,8 @@ public class VolumeLoader : MonoBehaviour
 {
     
     private Texture3D[] textures;
-    private Material[] materials;
-    private GameObject[] renderCubes;
+    private Material cubeMaterial;
+    private GameObject renderCube;
     private Texture2D[] slices;
 
     [SerializeField] public string MaterialTextureName;
@@ -24,6 +24,9 @@ public class VolumeLoader : MonoBehaviour
 
     private const string DENSITY_TAG = "_Density";
     private const string SAMPLE_QUALITY_TAG = "_SamplingQuality";
+    private const string RED_TAG = "_Red";
+    private const string GREEN_TAG = "_Green";
+    private const string BLUE_TAG = "_Blue";
 
     private void Awake()
     {
@@ -31,56 +34,49 @@ public class VolumeLoader : MonoBehaviour
 
         slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
 
-        if (SplitRGB)
-            textures = CreateRGBTexture3D(slices);
-        else
-            textures = CreateTexture3D(slices);
+        textures = CreateTexture3D(slices);
 
-        materials = new Material[textures.Length];
-        renderCubes = new GameObject[textures.Length];
-        for (int i = 0; i < textures.Length; i++)
-        {
-            GameObject renderCube = Instantiate(rendererPrefab, new Vector3(i * RendererSpacing, 0, 0), Quaternion.identity);
-            renderCubes[i] = renderCube;
-            Material cubeMaterial = renderCube.GetComponent<Renderer>().material;
-            cubeMaterial.SetTexture(MaterialTextureName, textures[i]);
-            cubeMaterial.SetFloat(DENSITY_TAG, Density);
-            cubeMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
-            materials[i] = cubeMaterial;
-        }
-    }
+        renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+        cubeMaterial = renderCube.GetComponent<Renderer>().material;
+        cubeMaterial.SetTexture(MaterialTextureName, textures[0]);
+        cubeMaterial.SetFloat(DENSITY_TAG, Density);
+        cubeMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
 
-    void Start()
-    {
-        
+        cubeMaterial.SetInt(RED_TAG, 1);
+        cubeMaterial.SetInt(BLUE_TAG, 1);
+        cubeMaterial.SetInt(GREEN_TAG, 1);
     }
 
     public void SetDensity(float d)
     {
         Density = d;
-        for (int i = 0; i < materials.Length; i++)
-        {
-            materials[i].SetFloat(DENSITY_TAG, d);
-        }
-
+        cubeMaterial.SetFloat(DENSITY_TAG, d);
     }
 
     public void SetQuality(int q)
     {
         SamplingQuality = q;
-        for (int i = 0; i < textures.Length; i++)
-        {
-            materials[i].SetFloat(SAMPLE_QUALITY_TAG, q);
-        }
+        cubeMaterial.SetFloat(SAMPLE_QUALITY_TAG, q); 
+    }
+
+    public void SetRenderRed(bool r) 
+    {
+        cubeMaterial.SetInt(RED_TAG, r ? 1 : 0);
+    }
+    public void SetRenderGreen(bool g)
+    {
+        cubeMaterial.SetInt(GREEN_TAG, g ? 1 : 0);
+    }
+
+    public void SetRenderBlue(bool b)
+    {
+        cubeMaterial.SetInt(BLUE_TAG, b ? 1 : 0);
     }
 
     public void SetXScale(float scale) {
         Transform t;
-        
-        for (int i = 0; i < renderCubes.Length; i++) {
-            t = renderCubes[i].transform;
-            t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
-        }
+        t = renderCube.transform;
+        t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
     }
 
     //Creates one 3D texture with all colour information

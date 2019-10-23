@@ -14,8 +14,12 @@
 		int _SamplingQuality;
 		//the 3D texture to be rendered
 		sampler3D _MainTex;
-		//
+		//the density of individual 
 		float _Density;
+		//wether to use each colour channel 
+		int _Red;
+		int _Green;
+		int _Blue;
 
 		struct v2f
 		{
@@ -42,6 +46,7 @@
 			float3 origin;
 			float3 direction;
 		};
+
 		bool IntersectBox(Ray ray, out float entryPoint, out float exitPoint)
 		{
 			float3 invR = 1.0 / ray.direction;
@@ -89,6 +94,10 @@
 				start -= ds;
 			}
 			color *= _Density / (uint)_SamplingQuality;
+
+			if (_Red == 0) color.x = 0;
+			if (_Green == 0) color.y = 0;
+			if (_Blue == 0) color.z = 0;
 
 			return color;
 		}
