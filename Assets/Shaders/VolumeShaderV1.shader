@@ -20,6 +20,8 @@
 		int _Red;
 		int _Green;
 		int _Blue;
+		//the crop point for the x plane
+		int _XCrop;
 
 		struct v2f
 		{
@@ -61,6 +63,7 @@
 			return entryPoint <= exitPoint;
 		}
 
+		//calculate the value of this individual fragment (determines the colour of this point) 
 		float4 frag(v2f IN) : COLOR
 		{
 			float3 localCameraPosition = UNITY_MATRIX_IT_MV[3].xyz;
@@ -88,7 +91,6 @@
 				float3 pos = start.xyz;
 				pos.xyz = pos.xyz + 0.5f;
 				float4 mask = tex3D(_MainTex, pos);
-
 				color.xyz += mask.xyz * mask.w;
 
 				start -= ds;

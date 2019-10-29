@@ -10,15 +10,15 @@ public class ToggleListener : MonoBehaviour
     public Toggle blue;
     public void HandleRedCheckBox() 
     {
-        VolumeLoader.Instance.SetRenderRed(red.isOn);
+        VolumeManager.Instance.SetRenderRed(red.isOn);
     }
     public void HandleGreenCheckBox()
     {
-        VolumeLoader.Instance.SetRenderGreen(green.isOn);
+        VolumeManager.Instance.SetRenderGreen(green.isOn);
     }
 
     public void HandleBlueCheckBox()
     {
-        VolumeLoader.Instance.SetRenderBlue(blue.isOn);
+        VolumeManager.Instance.SetRenderBlue(blue.isOn);
     }
 }

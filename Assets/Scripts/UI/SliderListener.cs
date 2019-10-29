@@ -9,29 +9,43 @@ public class SliderListener : MonoBehaviour
     public Slider DensitySlider;
     public Slider QualitySlider;
     public Slider SpacingSlider;
+    public Slider XSliceSlider;
 
     public Text DensityText;
     public Text QualityText;
     public Text SpacingText;
+    public Text XSliceText;
 
     void Start()
     {
+        Debug.Log("Slider on start");
+        XSliceSlider.maxValue = VolumeManager.Instance.Volume.width;
+        XSliceSlider.value = XSliceSlider.maxValue / 2;
+
         OnDensitySliderChanged();
         OnQualitySliderChanged();
+        OnSpacingSliderChanged();
+        OnXSliceSliderChanged();
     }
 
     public void OnDensitySliderChanged() {
-        VolumeLoader.Instance.SetDensity(DensitySlider.value);
+        VolumeManager.Instance.SetDensity(DensitySlider.value);
         DensityText.text = "" + DensitySlider.value;
     }
 
     public void OnQualitySliderChanged() {
-        VolumeLoader.Instance.SetQuality((int)QualitySlider.value);
+        VolumeManager.Instance.SetQuality((int)QualitySlider.value);
         QualityText.text = "" + QualitySlider.value;
     }
 
     public void OnSpacingSliderChanged() {
-        VolumeLoader.Instance.SetXScale(SpacingSlider.value);
+        VolumeManager.Instance.SetXScale(SpacingSlider.value);
         SpacingText.text = "" + SpacingSlider.value;
+    }
+
+    public void OnXSliceSliderChanged()
+    {
+        VolumeManager.Instance.SetXCrop(XSliceSlider.value);
+        XSliceText.text = "" + XSliceSlider.value;
     }
 }
