@@ -19,8 +19,6 @@ public class SliderListener : MonoBehaviour
     void Start()
     {
         Debug.Log("Slider on start");
-        XSliceSlider.maxValue = VolumeManager.Instance.Volume.width;
-        XSliceSlider.value = XSliceSlider.maxValue / 2;
 
         OnDensitySliderChanged();
         OnQualitySliderChanged();

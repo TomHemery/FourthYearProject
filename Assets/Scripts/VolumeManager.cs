@@ -25,6 +25,7 @@ public class VolumeManager : MonoBehaviour
     private const string RED_TAG = "_Red";
     private const string GREEN_TAG = "_Green";
     private const string BLUE_TAG = "_Blue";
+    private const string X_CROP_TAG = "_XCrop";
 
     private void Awake()
     {
@@ -40,12 +41,14 @@ public class VolumeManager : MonoBehaviour
         renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
         cubeMaterial = renderCube.GetComponent<Renderer>().material;
         cubeMaterial.SetTexture(MaterialTextureName, Volume);
+
         cubeMaterial.SetFloat(DENSITY_TAG, Density);
         cubeMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
 
         cubeMaterial.SetInt(RED_TAG, 1);
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
+        cubeMaterial.SetInt(X_CROP_TAG, Volume.width);
     }
 
     public void SetDensity(float d)
@@ -81,21 +84,7 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void SetXCrop(float crop) {
-        Color c;
-        for(int x = 0; x < Volume.width; x++)
-        {
-            Debug.Log("X: " + x + ", Crop: " + crop);
-            for (int y = 0; y < Volume.height; y++) 
-            { 
-                for(int z = 0; z < Volume.depth; z++)
-                {
-                    c = Volume.GetPixel(x, y, z);
-                    c.a = x > crop ? 0 : VolumeCopy.GetPixel(x, y, z).a;
-                    Volume.SetPixel(x, y, z, c);
-                }
-            }
-        }
-        Volume.Apply();
+        cubeMaterial.SetFloat(X_CROP_TAG, crop);
     }
 
     //Creates one 3D texture with all colour information

@@ -3098,10 +3098,10 @@ MonoBehaviour:
   m_FillRect: {fileID: 1537217163}
   m_HandleRect: {fileID: 1062253471}
   m_Direction: 2
-  m_MinValue: 1
-  m_MaxValue: 256
-  m_WholeNumbers: 1
-  m_Value: 128
+  m_MinValue: 0
+  m_MaxValue: 1
+  m_WholeNumbers: 0
+  m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
