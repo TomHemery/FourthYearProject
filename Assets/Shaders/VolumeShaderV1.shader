@@ -20,8 +20,9 @@
 		int _Red;
 		int _Green;
 		int _Blue;
-		//the crop point for the x plane
-		float _XCrop;
+		//information on slicing plane
+		float4 _PlanePos;
+		float4 _PlaneNormal;
 
 		struct v2f
 		{
@@ -92,7 +93,9 @@
 				pos.xyz = pos.xyz + 0.5f;
 				float4 mask = tex3D(_MainTex, pos);
 
-				if (_XCrop > pos.x) {
+				float3 between = pos - _PlanePos.xyz;
+				float val = dot(between, _PlaneNormal.xyz);
+				if (val < 0) {
 					mask.w = 0;
 				}
 

@@ -12,6 +12,7 @@ public class VolumeManager : MonoBehaviour
     private Material cubeMaterial;
     private GameObject renderCube;
     private Texture2D[] slices;
+    private CuttingPlane cuttingPlane;
 
     [SerializeField] public string MaterialTextureName;
     public GameObject rendererPrefab;
@@ -25,18 +26,16 @@ public class VolumeManager : MonoBehaviour
     private const string RED_TAG = "_Red";
     private const string GREEN_TAG = "_Green";
     private const string BLUE_TAG = "_Blue";
-    private const string X_CROP_TAG = "_XCrop";
+    private const string PLANE_POSITION_TAG = "_PlanePos";
+    private const string PLANE_NORMAL_TAG = "_PlaneNormal";
 
     private void Awake()
     {
-        Debug.Log("Volume manager on awake");
         if (Instance == null) Instance = this;
 
         slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
 
         Volume = CreateTexture3D(slices);
-        VolumeCopy = new Texture3D(Volume.width, Volume.height, Volume.depth, TextureFormat.RGBA32, false);
-        Graphics.CopyTexture(Volume, VolumeCopy);
 
         renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
         cubeMaterial = renderCube.GetComponent<Renderer>().material;
@@ -48,13 +47,19 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(RED_TAG, 1);
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
-        cubeMaterial.SetInt(X_CROP_TAG, Volume.width);
+        cuttingPlane = renderCube.GetComponentInChildren<CuttingPlane>();
+    }
+
+    private void Start()
+    {
+        SetPlane(cuttingPlane.GetPlanePosition(), cuttingPlane.GetPlaneNormal());
     }
 
     public void SetDensity(float d)
     {
         Density = d;
         cubeMaterial.SetFloat(DENSITY_TAG, d);
+        
     }
 
     public void SetQuality(int q)
@@ -83,8 +88,10 @@ public class VolumeManager : MonoBehaviour
         t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
     }
 
-    public void SetXCrop(float crop) {
-        cubeMaterial.SetFloat(X_CROP_TAG, crop);
+    public void SetPlane(Vector4 planePos, Vector4 normal) {
+        Debug.Log("Setting plane to position: " + planePos + " with normal: " + normal);
+        cubeMaterial.SetVector(PLANE_POSITION_TAG, planePos);
+        cubeMaterial.SetVector(PLANE_NORMAL_TAG, normal);
     }
 
     //Creates one 3D texture with all colour information
