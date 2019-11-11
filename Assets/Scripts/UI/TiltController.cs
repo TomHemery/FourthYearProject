@@ -55,12 +55,8 @@ public class TiltController : MonoBehaviour
             {
                 if (result.gameObject == UIImage)
                 {
-                    if (activeController == null) Debug.Log("Active controller = " + this);
                     activeController = this;
                     float angle = Vector3.Angle(ZeroAngle, result.worldPosition);
-
-                    Debug.Log("Angle: " + angle);
-                    Debug.Log("World position: " + result.worldPosition);
 
                     if (Axis.x != 0)
                     {
@@ -82,7 +78,6 @@ public class TiltController : MonoBehaviour
         else if (activeController == this)
         {
             activeController = null;
-            Debug.Log("Active controller removed");
         }
         else
             baseRotation = CuttingPlane.localRotation.eulerAngles;
