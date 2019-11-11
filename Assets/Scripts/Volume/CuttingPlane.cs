@@ -19,7 +19,7 @@ public class CuttingPlane : MonoBehaviour
     }
 
     public Vector4 GetPlanePosition() {
-        return transform.localPosition + (parentTransform.localScale / 2);
+        return transform.localPosition + new Vector3(0.5f, 0.5f, 0.5f);
     }
 
     public Vector4 GetPlaneNormal() {

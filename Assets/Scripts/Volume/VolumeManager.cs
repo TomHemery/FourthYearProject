@@ -89,7 +89,6 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void SetPlane(Vector4 planePos, Vector4 normal) {
-        Debug.Log("Setting plane to position: " + planePos + " with normal: " + normal);
         cubeMaterial.SetVector(PLANE_POSITION_TAG, planePos);
         cubeMaterial.SetVector(PLANE_NORMAL_TAG, normal);
     }
