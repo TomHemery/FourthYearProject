@@ -39,8 +39,6 @@ public class TranslateController : MonoBehaviour, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        Debug.Log("Cutting plane on drag, delta: " + eventData.delta);
-
         Vector2 arrowStart = Camera.main.WorldToScreenPoint(Front.position);
         Vector2 arrowEnd = Camera.main.WorldToScreenPoint(Back.position);
 
