@@ -7,12 +7,13 @@ using UnityEngine.UI;
 public class TiltController : MonoBehaviour
 {
     public Transform CuttingPlane;
-    public Vector3 Axis;
-    public Vector3 ZeroAngle;
     public GameObject UIImage;
+    public char RotationAxis;
 
-    private Vector3 baseRotation;
     private Canvas mCanvas;
+    private Vector3 zeroAngle;
+    private bool zeroSet = false;
+    private Vector3 localAxis;
 
     GraphicRaycaster m_Raycaster;
     PointerEventData m_PointerEventData;
@@ -29,10 +30,11 @@ public class TiltController : MonoBehaviour
     {
         //Fetch the Raycaster from the GameObject (the Canvas)
         m_Raycaster = GetComponent<GraphicRaycaster>();
+        m_Raycaster.ignoreReversedGraphics = false;
         //Fetch the Event System from the Scene
         m_EventSystem = GetComponent<EventSystem>();
-        baseRotation = CuttingPlane.localRotation.eulerAngles;
         mCanvas.worldCamera = Camera.main;
+        localAxis = RotationAxis == 'X' ? CuttingPlane.forward : RotationAxis == 'Y' ? CuttingPlane.up : CuttingPlane.right;
     }
 
     void Update()
@@ -55,31 +57,26 @@ public class TiltController : MonoBehaviour
             {
                 if (result.gameObject == UIImage)
                 {
+                    Debug.Log("World normal: " + result.worldNormal);
                     activeController = this;
-                    float angle = Vector3.Angle(ZeroAngle, result.worldPosition);
-
-                    if (Axis.x != 0)
-                    {
-                        if (result.worldPosition.x < 0) angle = -angle;
+                    if (!zeroSet)
+                    { 
+                        zeroAngle = result.worldPosition;
+                        zeroSet = true;
                     }
-                    else if (Axis.y != 0)
-                    {
-                        if (result.worldPosition.z > 0) angle = -angle;
+                    else {
+                        float angle = Vector3.SignedAngle(zeroAngle, result.worldPosition, localAxis);
+                        if (Vector3.Dot(transform.forward, Camera.main.transform.forward) < 0) angle = -angle;
+                        CuttingPlane.Rotate(localAxis, angle);
+                        zeroAngle = result.worldPosition;
                     }
-                    else if (Axis.z != 0)
-                    {
-                        if (result.worldPosition.z < 0) angle = -angle;
-                    }
-
-                    CuttingPlane.rotation = Quaternion.Euler(Axis * angle + baseRotation);
                 }
             }
         }
         else if (activeController == this)
         {
             activeController = null;
+            zeroSet = false;
         }
-        else
-            baseRotation = CuttingPlane.localRotation.eulerAngles;
     }
 }
