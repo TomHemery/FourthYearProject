@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditor;
 
 public class VolumeManager : MonoBehaviour
 {
@@ -29,13 +30,21 @@ public class VolumeManager : MonoBehaviour
     private const string PLANE_POSITION_TAG = "_PlanePos";
     private const string PLANE_NORMAL_TAG = "_PlaneNormal";
 
+    private const string CACHE_PATH = "Assets/Resources/VolumeCache/";
+    private const string CACHE_PATH_SHORT = "VolumeCache/";
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
-
-        slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
-
-        Volume = CreateTexture3D(slices);
+        //look for a cached instance of this 
+        Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + sourceFolderName);
+        //if none existst then create it
+        if (Volume == null)
+        {
+            slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
+            Volume = CreateTexture3D(slices);
+            AssetDatabase.CreateAsset(Volume, CACHE_PATH + sourceFolderName + ".asset");
+        }
 
         renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
         cubeMaterial = renderCube.GetComponent<Renderer>().material;
