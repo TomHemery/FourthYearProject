@@ -9,15 +9,14 @@ public class VolumeManager : MonoBehaviour
     public static VolumeManager Instance { private set; get; } = null;
 
     public Texture3D Volume { get; private set; }
-    private Texture3D VolumeCopy;
     private Material cubeMaterial;
-    private GameObject renderCube;
+    private GameObject renderCube = null;
     private Texture2D[] slices;
     private CuttingPlane cuttingPlane;
 
     [SerializeField] public string MaterialTextureName;
     public GameObject rendererPrefab;
-    public string sourceFolderName;
+    public string defaultFolderName;
     public ViewResetter viewResetter;
 
     private float Density = 1;
@@ -31,20 +30,27 @@ public class VolumeManager : MonoBehaviour
     private const string PLANE_POSITION_TAG = "_PlanePos";
     private const string PLANE_NORMAL_TAG = "_PlaneNormal";
 
-    private const string CACHE_PATH = "Assets/Resources/VolumeCache/";
-    private const string CACHE_PATH_SHORT = "VolumeCache/";
+    public const string VOLUMETRIC_DATA_PATH = "Volumetric Data/";
+    public const string CACHE_PATH = "Assets/Resources/VolumeCache/";
+    public const string CACHE_PATH_SHORT = "VolumeCache/";
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        if(defaultFolderName != "")LoadVolume(defaultFolderName);
+    }
+
+    public void LoadVolume(string name) {
+        if (renderCube != null) Destroy(renderCube);
+
         //look for a cached instance of volume
-        Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + sourceFolderName);
+        Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + name);
         //if none exists then create it
         if (Volume == null)
         {
-            slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
+            slices = Resources.LoadAll(VOLUMETRIC_DATA_PATH + name, typeof(Texture2D)).Cast<Texture2D>().ToArray();
             Volume = CreateTexture3D(slices);
-            AssetDatabase.CreateAsset(Volume, CACHE_PATH + sourceFolderName + ".asset");
+            AssetDatabase.CreateAsset(Volume, CACHE_PATH + name + ".asset");
         }
 
         renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
@@ -59,6 +65,9 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(GREEN_TAG, 1);
         cuttingPlane = renderCube.GetComponentInChildren<CuttingPlane>();
         viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
+
+        //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
+        //Resources.UnloadUnusedAssets();
     }
 
     private void Start()
