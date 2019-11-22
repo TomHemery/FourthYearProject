@@ -31,6 +31,7 @@ public class TranslateController : MonoBehaviour, IDragHandler
     {
         //Fetch the Raycaster from the GameObject (the Canvas)
         m_Raycaster = GetComponent<GraphicRaycaster>();
+        m_Raycaster.ignoreReversedGraphics = false;
         //Fetch the Event System from the Scene
         m_EventSystem = GetComponent<EventSystem>();
         baseRotation = CuttingPlane.localRotation.eulerAngles;

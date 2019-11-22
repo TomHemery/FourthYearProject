@@ -40,7 +40,7 @@ public class CuttingPlaneControllerToggle : MonoBehaviour, IPointerClickHandler
                 if (TranslationController != null) TranslationController.SetActive(true);
             }
 
-            else if (Input.GetKeyUp(KeyCode.Escape))
+            else if (Input.GetKeyUp(KeyCode.Delete))
             {
                 Deactivate();
             }

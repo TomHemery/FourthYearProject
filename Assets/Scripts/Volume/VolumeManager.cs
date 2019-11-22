@@ -18,6 +18,7 @@ public class VolumeManager : MonoBehaviour
     [SerializeField] public string MaterialTextureName;
     public GameObject rendererPrefab;
     public string sourceFolderName;
+    public ViewResetter viewResetter;
 
     private float Density = 1;
     private int SamplingQuality = 64;
@@ -36,9 +37,9 @@ public class VolumeManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        //look for a cached instance of this 
+        //look for a cached instance of volume
         Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + sourceFolderName);
-        //if none existst then create it
+        //if none exists then create it
         if (Volume == null)
         {
             slices = Resources.LoadAll("Volumetric Data/" + sourceFolderName, typeof(Texture2D)).Cast<Texture2D>().ToArray();
@@ -57,6 +58,7 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
         cuttingPlane = renderCube.GetComponentInChildren<CuttingPlane>();
+        viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
     }
 
     private void Start()
