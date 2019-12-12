@@ -14,9 +14,9 @@
 		int _SamplingQuality;
 		//the 3D texture to be rendered
 		sampler3D _MainTex;
-		//the density of individual 
+		//the density of individual
 		float _Density;
-		//wether to use each colour channel 
+		//whether to use each colour channel
 		int _Red;
 		int _Green;
 		int _Blue;
@@ -43,7 +43,7 @@
 			return OUT;
 		}
 
-		// usual ray/cube intersection algorithm
+		// ray/cube intersection algorithm
 		struct Ray
 		{
 			float3 origin;
@@ -64,7 +64,7 @@
 			return entryPoint <= exitPoint;
 		}
 
-		//calculate the value of this individual fragment (determines the colour of this point) 
+		//calculate the value of this individual fragment (determines the colour of this point)
 		float4 frag(v2f IN) : COLOR
 		{
 			float4 color = float4(0,0,0,0);
@@ -82,26 +82,22 @@
 			float3 rayStart = ray.origin + ray.direction * entryPoint;
 			float3 rayStop = ray.origin + ray.direction * exitPoint;
 
-			float3 start = rayStop;
 			float dist = distance(rayStop, rayStart);
 			float stepSize = dist / float(_SamplingQuality);
 			float3 ds = normalize(rayStop - rayStart) * stepSize;
+			float3 pos = rayStop.xyz + 0.5f;
 
 			for (int i = _SamplingQuality; i >= 0; --i)
 			{
-				float3 pos = start.xyz;
-				pos.xyz = pos.xyz + 0.5f;
-				float4 mask = tex3D(_MainTex, pos);
-
+				float4 mask = float4(0, 0, 0, 0);
+				//check if occluded by cutting plane 
 				float3 between = pos - _PlanePos.xyz;
 				float val = dot(between, _PlaneNormal.xyz);
-				if (val < 0) {
-					mask.w = 0;
+				if (val > 0) { //if not occluded by cutting plane then accumulate this position's colour
+					mask = tex3D(_MainTex, pos);
+					color.xyz += mask.xyz * mask.w;
 				}
-
-				color.xyz += mask.xyz * mask.w;
-
-				start -= ds;
+				pos -= ds;
 			}
 			color *= _Density / (uint)_SamplingQuality;
 

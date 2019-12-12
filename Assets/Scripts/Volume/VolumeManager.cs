@@ -120,6 +120,7 @@ public class VolumeManager : MonoBehaviour
         int imageHeight = imageStack[0].height;
         Color[] colorArray = new Color[imageWidth * imageHeight * imageStack.Length];
         Texture3D texture = new Texture3D(imageStack[0].width, imageStack[1].height, imageStack.Length, TextureFormat.RGBA32, false);
+        texture.filterMode = FilterMode.Trilinear;
         Texture2D slice;
         for (int i = 0; i <imageStack.Length; i++) {
             slice = imageStack[i];
