@@ -5,17 +5,23 @@ using UnityEngine;
 public class CuttingPlane : MonoBehaviour
 {
     private RectTransform mRectTransform;
-    private Transform parentTransform;
+
+    private Material mat;
 
     private void Awake()
     {
         mRectTransform = gameObject.GetComponent<RectTransform>();
-        parentTransform = mRectTransform.parent;
+        mat = transform.root.GetComponent<Renderer>().material; 
     }
 
     void Update()
     {
-        VolumeManager.Instance.SetPlane(GetPlanePosition(), GetPlaneNormal());
+        ApplyToMaterial();
+    }
+
+    public void ApplyToMaterial() {
+        mat.SetVector(VolumeManager.PLANE_NORMAL_TAG, GetPlaneNormal());
+        mat.SetVector(VolumeManager.PLANE_POSITION_TAG, GetPlanePosition());
     }
 
     public Vector4 GetPlanePosition() {
