@@ -57,7 +57,6 @@ public class TiltController : MonoBehaviour
             {
                 if (result.gameObject == UIImage)
                 {
-                    Debug.Log("World normal: " + result.worldNormal);
                     activeController = this;
                     if (!zeroSet)
                     { 

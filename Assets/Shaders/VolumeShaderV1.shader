@@ -14,7 +14,7 @@
 		int _SamplingQuality;
 		//the 3D texture to be rendered
 		sampler3D _MainTex;
-		//the density of individual
+		//the density of the colour values within the volume
 		float _Density;
 		//whether to use each colour channel
 		int _Red;
@@ -61,6 +61,7 @@
 			entryPoint = max(t.x, t.y);
 			t = min(tmax.xx, tmax.yz);
 			exitPoint = min(t.x, t.y);
+
 			return entryPoint <= exitPoint;
 		}
 
