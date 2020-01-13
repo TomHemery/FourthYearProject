@@ -10,13 +10,11 @@ public class ViewResetter : MonoBehaviour
     public Slider DensitySlider;
     public Slider SpacingSlider;
 
-    public GameObject CuttingPlane { get; private set; } = null;
-
     private Vector3 cameraStartPosition;
     private Quaternion cameraStartRotation;
 
-    private Vector3 cuttingPlaneStartPosition;
-    private Quaternion cuttingPlaneStartRotation;
+    private List<Vector3> cuttingPlaneStartPositions;
+    private List<Quaternion> cuttingPlaneStartRotations;
 
     private float startDensity;
     private float startSpacing;
@@ -29,10 +27,14 @@ public class ViewResetter : MonoBehaviour
         startSpacing = SpacingSlider.value;
     }
 
-    public void SetCuttingPlane(GameObject cp) {
-        cuttingPlaneStartPosition = cp.transform.position;
-        cuttingPlaneStartRotation = cp.transform.rotation;
-        CuttingPlane = cp;
+    public void CacheCuttingPlanes(){
+        cuttingPlaneStartPositions = new List<Vector3>();
+        cuttingPlaneStartRotations = new List<Quaternion>();
+        
+        foreach (GameObject g in VolumeManager.Instance.VolumeCubes) {
+            cuttingPlaneStartPositions.Add(g.transform.position);
+            cuttingPlaneStartRotations.Add(g.transform.rotation);
+        }
     }
 
     public void OnResetViewButtonPressed() {
@@ -42,9 +44,11 @@ public class ViewResetter : MonoBehaviour
         DensitySlider.value = startDensity;
         SpacingSlider.value = startSpacing;
 
-        if (CuttingPlane != null) {
-            CuttingPlane.transform.position = cuttingPlaneStartPosition;
-            CuttingPlane.transform.rotation = cuttingPlaneStartRotation;
+        if (cuttingPlaneStartRotations != null && cuttingPlaneStartPositions != null) {
+            for (int i = 0; i < VolumeManager.Instance.VolumeCubes.Count; i++) {
+                VolumeManager.Instance.VolumeCubes[i].transform.position = cuttingPlaneStartPositions[i];
+                VolumeManager.Instance.VolumeCubes[i].transform.rotation = cuttingPlaneStartRotations[i];
+            }
         }
     }
 }

@@ -9,10 +9,8 @@ public class VolumeManager : MonoBehaviour
     public static VolumeManager Instance { private set; get; } = null;
 
     public Texture3D Volume { get; private set; }
-    private Material cubeMaterial;
-    private List<GameObject> volumeCubes = null;
+    public List<GameObject> VolumeCubes { get; private set; } = null;
     private Texture2D[] slices;
-    private CuttingPlane cuttingPlane;
 
     [SerializeField] public string MaterialTextureName;
     public GameObject rendererPrefab;
@@ -42,8 +40,8 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void LoadVolume(string name) {
-        if (volumeCubes != null) foreach (GameObject g in volumeCubes) Destroy(g);
-        volumeCubes = new List<GameObject>();
+        if (VolumeCubes != null) foreach (GameObject g in VolumeCubes) Destroy(g);
+        VolumeCubes = new List<GameObject>();
         //look for a cached instance of volume
         Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + name);
         //if none exists then create it
@@ -54,8 +52,9 @@ public class VolumeManager : MonoBehaviour
             AssetDatabase.CreateAsset(Volume, CACHE_PATH + name + ".asset");
         }
 
-        volumeCubes.Add(Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity));
-        cubeMaterial = volumeCubes[0].GetComponent<Renderer>().material;
+        VolumeCubes.Add(Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity));
+        Material cubeMaterial;
+        cubeMaterial = VolumeCubes[0].GetComponent<Renderer>().material;
         cubeMaterial.SetTexture(MaterialTextureName, Volume);
 
         cubeMaterial.SetFloat(DENSITY_TAG, Density);
@@ -67,10 +66,11 @@ public class VolumeManager : MonoBehaviour
 
         cubeMaterial.SetInt(REVERSE_PLANE_TAG, 1);
 
-        cuttingPlane = volumeCubes[0].GetComponentInChildren<CuttingPlane>();
+        CuttingPlane cuttingPlane = VolumeCubes[0].GetComponentInChildren<CuttingPlane>();
         cuttingPlane.transform.Translate(0, 0, 0.5f);
         cuttingPlane.ApplyToMaterial();
-        viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
+
+        viewResetter.CacheCuttingPlanes();
 
         //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
         //Resources.UnloadUnusedAssets();
@@ -79,17 +79,18 @@ public class VolumeManager : MonoBehaviour
     public void SplitVolume() {
         if (Volume != null)
         {
-            foreach (GameObject g in volumeCubes) {
+            foreach (GameObject g in VolumeCubes) {
                 Destroy(g);
             }
-            volumeCubes.Clear();
+            VolumeCubes.Clear();
 
             GameObject left = Instantiate(rendererPrefab, new Vector3(0, 0, 0.2f), Quaternion.identity);
             GameObject right = Instantiate(rendererPrefab, new Vector3(0, 0, -0.2f), Quaternion.identity);
-            volumeCubes.Add(left);
-            volumeCubes.Add(right);
-            for (int i = 0; i < volumeCubes.Count(); i++) {
-                cubeMaterial = volumeCubes[i].GetComponent<Renderer>().material;
+            VolumeCubes.Add(left);
+            VolumeCubes.Add(right);
+            Material cubeMaterial;
+            for (int i = 0; i < VolumeCubes.Count(); i++) {
+                cubeMaterial = VolumeCubes[i].GetComponent<Renderer>().material;
                 cubeMaterial.SetTexture(MaterialTextureName, Volume);
 
                 cubeMaterial.SetFloat(DENSITY_TAG, Density);
@@ -100,11 +101,10 @@ public class VolumeManager : MonoBehaviour
                 cubeMaterial.SetInt(GREEN_TAG, 1);
 
                 cubeMaterial.SetInt(REVERSE_PLANE_TAG, i == 0 ? 0 : 1);
-                cubeMaterial.SetVector(PLANE_POSITION_TAG, volumeCubes[i].GetComponentInChildren<CuttingPlane>().GetPlanePosition());
-                cubeMaterial.SetVector(PLANE_NORMAL_TAG, volumeCubes[i].GetComponentInChildren<CuttingPlane>().GetPlaneNormal());
-                //cuttingPlane = volumeCubes[i].GetComponentInChildren<CuttingPlane>();
-                //viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
+                cubeMaterial.SetVector(PLANE_POSITION_TAG, VolumeCubes[i].GetComponentInChildren<CuttingPlane>().GetPlanePosition());
+                cubeMaterial.SetVector(PLANE_NORMAL_TAG, VolumeCubes[i].GetComponentInChildren<CuttingPlane>().GetPlaneNormal());
             }
+            viewResetter.CacheCuttingPlanes();
         }
     }
 
@@ -116,15 +116,10 @@ public class VolumeManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        SetPlane(cuttingPlane.GetPlanePosition(), cuttingPlane.GetPlaneNormal());
-    }
-
     public void SetDensity(float d)
     {
         Density = d;
-        foreach (GameObject g in volumeCubes)
+        foreach (GameObject g in VolumeCubes)
         {
             g.GetComponent<Renderer>().material.SetFloat(DENSITY_TAG, d);
         }
@@ -134,7 +129,7 @@ public class VolumeManager : MonoBehaviour
     public void SetQuality(int q)
     {
         SamplingQuality = q;
-        foreach (GameObject g in volumeCubes)
+        foreach (GameObject g in VolumeCubes)
         {
             g.GetComponent<Renderer>().material.SetFloat(SAMPLE_QUALITY_TAG, q);
         }
@@ -142,14 +137,14 @@ public class VolumeManager : MonoBehaviour
 
     public void SetRenderRed(bool r) 
     {
-        foreach (GameObject g in volumeCubes)
+        foreach (GameObject g in VolumeCubes)
         {
             g.GetComponent<Renderer>().material.SetInt(RED_TAG, r ? 1 : 0);
         }
     }
     public void SetRenderGreen(bool g)
     {
-        foreach (GameObject ga in volumeCubes)
+        foreach (GameObject ga in VolumeCubes)
         {
             ga.GetComponent<Renderer>().material.SetInt(GREEN_TAG, g ? 1 : 0);
         }
@@ -157,7 +152,7 @@ public class VolumeManager : MonoBehaviour
 
     public void SetRenderBlue(bool b)
     {
-        foreach (GameObject g in volumeCubes)
+        foreach (GameObject g in VolumeCubes)
         {
             g.GetComponent<Renderer>().material.SetInt(BLUE_TAG, b ? 1 : 0);
         }
@@ -166,16 +161,11 @@ public class VolumeManager : MonoBehaviour
     public void SetXScale(float scale)
     {
         Transform t;
-        foreach (GameObject g in volumeCubes)
+        foreach (GameObject g in VolumeCubes)
         {
             t = g.transform;
             t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
         }
-    }
-
-    public void SetPlane(Vector4 planePos, Vector4 normal) {
-        cubeMaterial.SetVector(PLANE_POSITION_TAG, planePos);
-        cubeMaterial.SetVector(PLANE_NORMAL_TAG, normal);
     }
 
     //Creates one 3D texture with all colour information
