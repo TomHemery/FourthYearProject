@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class TranslateController : MonoBehaviour, IDragHandler
 {
-    public Transform CuttingPlane;
+    public Transform TranslateTarget;
     public Vector3 Axis;
     public GameObject UIImage;
 
@@ -34,7 +34,7 @@ public class TranslateController : MonoBehaviour, IDragHandler
         m_Raycaster.ignoreReversedGraphics = false;
         //Fetch the Event System from the Scene
         m_EventSystem = GetComponent<EventSystem>();
-        baseRotation = CuttingPlane.localRotation.eulerAngles;
+        baseRotation = TranslateTarget.localRotation.eulerAngles;
         mCanvas.worldCamera = Camera.main;
     }
 
@@ -47,22 +47,22 @@ public class TranslateController : MonoBehaviour, IDragHandler
         {
             if (arrowStart.x < arrowEnd.x)//arrow pointing left
             { 
-                CuttingPlane.transform.Translate(Axis * eventData.delta.x * Time.deltaTime);
+                TranslateTarget.transform.Translate(Axis * eventData.delta.x * Time.deltaTime);
             }
             else //arrow pointing right
             {
-                CuttingPlane.transform.Translate(Axis * -eventData.delta.x * Time.deltaTime);
+                TranslateTarget.transform.Translate(Axis * -eventData.delta.x * Time.deltaTime);
             }
         }
         else //arrow more vertical
         {
             if (arrowStart.y < arrowEnd.y)//arrow pointing left
             {
-                CuttingPlane.transform.Translate(Axis * eventData.delta.y * Time.deltaTime);
+                TranslateTarget.transform.Translate(Axis * eventData.delta.y * Time.deltaTime);
             }
             else //arrow pointing right
             {
-                CuttingPlane.transform.Translate(Axis * -eventData.delta.y * Time.deltaTime);
+                TranslateTarget.transform.Translate(Axis * -eventData.delta.y * Time.deltaTime);
             }
         }
     }
