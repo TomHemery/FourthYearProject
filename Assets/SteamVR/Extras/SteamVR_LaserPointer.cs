@@ -1,6 +1,8 @@
 ﻿//======= Copyright (c) Valve Corporation, All rights reserved. ===============
+//Edited by Thomas Hemery to make it actually usable
 using UnityEngine;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 namespace Valve.VR.Extras
 {
@@ -20,9 +22,17 @@ namespace Valve.VR.Extras
         bool isActive = true;
         public bool addRigidBody = false;
         public Transform reference;
+
         public event PointerEventHandler PointerIn;
         public event PointerEventHandler PointerOut;
         public event PointerEventHandler PointerClick;
+        public event PointerEventHandler PointerDown;
+        public event PointerEventHandler PointerUp;
+        public event PointerEventHandler PointerDrag;
+        public event PointerEventHandler PointerBeginDrag;
+        public event PointerEventHandler PointerEndDrag;
+
+        private bool dragging = false;
 
         Transform previousContact = null;
 
@@ -30,7 +40,7 @@ namespace Valve.VR.Extras
         private void Start()
         {
             if (pose == null)
-                pose = this.GetComponent<SteamVR_Behaviour_Pose>();
+                pose = GetComponent<SteamVR_Behaviour_Pose>();
             if (pose == null)
                 Debug.LogError("No SteamVR_Behaviour_Pose component found on this object", this);
 
@@ -71,20 +81,40 @@ namespace Valve.VR.Extras
 
         public virtual void OnPointerIn(PointerEventArgs e)
         {
-            if (PointerIn != null)
-                PointerIn(this, e);
+            PointerIn?.Invoke(this, e);
         }
 
         public virtual void OnPointerClick(PointerEventArgs e)
         {
-            if (PointerClick != null)
-                PointerClick(this, e);
+            PointerClick?.Invoke(this, e);
         }
 
         public virtual void OnPointerOut(PointerEventArgs e)
         {
-            if (PointerOut != null)
-                PointerOut(this, e);
+            PointerOut?.Invoke(this, e);
+        }
+
+        public virtual void OnPointerDown(PointerEventArgs e) {
+            PointerDown?.Invoke(this, e);
+        }
+
+        public virtual void OnPointerUp(PointerEventArgs e)
+        {
+            PointerUp?.Invoke(this, e);
+        }
+
+        public virtual void OnPointerDrag(PointerEventArgs e)
+        {
+            PointerDrag?.Invoke(this, e);
+        }
+
+        public virtual void OnBeginDrag(PointerEventArgs e) {
+            PointerBeginDrag?.Invoke(this, e);
+        }
+
+        public virtual void OnEndDrag(PointerEventArgs e)
+        {
+            PointerEndDrag?.Invoke(this, e);
         }
 
 
@@ -105,6 +135,7 @@ namespace Valve.VR.Extras
             RaycastHit hit;
             bool bHit = Physics.Raycast(raycast, out hit);
 
+            //flags in and out (only if we have changed object, prevents starting event multiple times)
             if (previousContact && previousContact != hit.transform)
             {
                 PointerEventArgs args = new PointerEventArgs();
@@ -112,6 +143,7 @@ namespace Valve.VR.Extras
                 args.distance = 0f;
                 args.flags = 0;
                 args.target = previousContact;
+                args.position = previousContact.position;
                 OnPointerOut(args);
                 previousContact = null;
             }
@@ -136,12 +168,47 @@ namespace Valve.VR.Extras
 
             if (bHit && interactWithUI.GetStateUp(pose.inputSource))
             {
-                PointerEventArgs argsClick = new PointerEventArgs();
-                argsClick.fromInputSource = pose.inputSource;
-                argsClick.distance = hit.distance;
-                argsClick.flags = 0;
-                argsClick.target = hit.transform;
-                OnPointerClick(argsClick);
+                PointerEventArgs argsEvent = new PointerEventArgs
+                {
+                    fromInputSource = pose.inputSource,
+                    distance = hit.distance,
+                    flags = 0,
+                    target = hit.transform,
+                    position = hit.point
+                };
+                OnPointerUp(argsEvent);
+                OnPointerClick(argsEvent);
+
+                dragging = false;
+                OnEndDrag(argsEvent);
+            }
+
+            if (bHit && interactWithUI.GetStateDown(pose.inputSource))
+            {
+                PointerEventArgs argsEvent = new PointerEventArgs
+                {
+                    fromInputSource = pose.inputSource,
+                    distance = hit.distance,
+                    flags = 0,
+                    target = hit.transform,
+                    position = hit.point
+                };
+                OnPointerDown(argsEvent);
+
+                dragging = true;
+                OnBeginDrag(argsEvent);
+            }
+
+            if (bHit && dragging) {
+                PointerEventArgs argsDrag = new PointerEventArgs
+                {
+                    fromInputSource = pose.inputSource,
+                    distance = hit.distance,
+                    flags = 0,
+                    target = hit.transform,
+                    position = hit.point
+                };
+                OnPointerDrag(argsDrag);
             }
 
             if (interactWithUI != null && interactWithUI.GetState(pose.inputSource))
@@ -164,6 +231,7 @@ namespace Valve.VR.Extras
         public uint flags;
         public float distance;
         public Transform target;
+        public Vector3 position;
     }
 
     public delegate void PointerEventHandler(object sender, PointerEventArgs e);
