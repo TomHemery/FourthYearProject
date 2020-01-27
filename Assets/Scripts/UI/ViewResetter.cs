@@ -36,8 +36,8 @@ public class ViewResetter : MonoBehaviour
     }
 
     public void OnResetViewButtonPressed() {
-        MainCamera.transform.position = cameraStartPosition;
-        MainCamera.transform.rotation = cameraStartRotation;
+        if(MainCamera != null) MainCamera.transform.position = cameraStartPosition;
+        if (MainCamera != null) MainCamera.transform.rotation = cameraStartRotation;
 
         DensitySlider.value = startDensity;
         SpacingSlider.value = startSpacing;

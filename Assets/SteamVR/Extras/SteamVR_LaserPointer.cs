@@ -8,16 +8,16 @@ namespace Valve.VR.Extras
     {
         public SteamVR_Behaviour_Pose pose;
 
-        //public SteamVR_Action_Boolean interactWithUI = SteamVR_Input.__actions_default_in_InteractUI;
         public SteamVR_Action_Boolean interactWithUI = SteamVR_Input.GetBooleanAction("InteractUI");
 
         public bool active = true;
         public Color color;
         public float thickness = 0.002f;
+        public float scaleIncrease = 3.0f;
         public Color clickColor = Color.green;
         public GameObject holder;
         public GameObject pointer;
-        bool isActive = false;
+        bool isActive = true;
         public bool addRigidBody = false;
         public Transform reference;
         public event PointerEventHandler PointerIn;
@@ -36,7 +36,6 @@ namespace Valve.VR.Extras
 
             if (interactWithUI == null)
                 Debug.LogError("No ui interaction action has been set on this component.", this);
-
 
             holder = new GameObject();
             holder.transform.parent = this.transform;
@@ -91,13 +90,16 @@ namespace Valve.VR.Extras
 
         private void Update()
         {
-            if (!isActive)
+            if (active != isActive)
             {
-                isActive = true;
-                this.transform.GetChild(0).gameObject.SetActive(true);
+                isActive = active;
+                pointer.SetActive(isActive);
             }
+            if (!isActive)
+                return;
 
             float dist = 100f;
+
 
             Ray raycast = new Ray(transform.position, transform.forward);
             RaycastHit hit;
@@ -144,7 +146,7 @@ namespace Valve.VR.Extras
 
             if (interactWithUI != null && interactWithUI.GetState(pose.inputSource))
             {
-                pointer.transform.localScale = new Vector3(thickness * 5f, thickness * 5f, dist);
+                pointer.transform.localScale = new Vector3(thickness * scaleIncrease, thickness * scaleIncrease, dist);
                 pointer.GetComponent<MeshRenderer>().material.color = clickColor;
             }
             else

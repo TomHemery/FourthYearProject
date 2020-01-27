@@ -2,7 +2,8 @@
   "actions": [
     {
       "name": "/actions/default/in/InteractUI",
-      "type": "boolean"
+      "type": "boolean",
+      "requirement": "mandatory"
     },
     {
       "name": "/actions/default/in/Teleport",
@@ -10,11 +11,13 @@
     },
     {
       "name": "/actions/default/in/GrabPinch",
-      "type": "boolean"
+      "type": "boolean",
+      "requirement": "mandatory"
     },
     {
       "name": "/actions/default/in/GrabGrip",
-      "type": "boolean"
+      "type": "boolean",
+      "requirement": "mandatory"
     },
     {
       "name": "/actions/default/in/Pose",
