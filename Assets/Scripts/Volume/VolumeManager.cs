@@ -10,7 +10,7 @@ public class VolumeManager : MonoBehaviour
 
     public Texture3D Volume { get; private set; }
     private Material cubeMaterial;
-    private GameObject renderCube = null;
+    public GameObject VolumeCube { get; private set; } = null;
     private Texture2D[] slices;
     private CuttingPlane cuttingPlane;
 
@@ -18,6 +18,8 @@ public class VolumeManager : MonoBehaviour
     public GameObject rendererPrefab;
     public string defaultFolderName;
     public ViewResetter viewResetter;
+    public Vector3 instantiatePosition;
+    public float volumeScale = 0.5f;
 
     private float Density = 1;
     private int SamplingQuality = 64;
@@ -41,7 +43,7 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void LoadVolume(string name) {
-        if (renderCube != null) Destroy(renderCube);
+        if (VolumeCube != null) Destroy(VolumeCube);
 
         //look for a cached instance of volume
         Volume = Resources.Load<Texture3D>(CACHE_PATH_SHORT + name);
@@ -53,8 +55,9 @@ public class VolumeManager : MonoBehaviour
             AssetDatabase.CreateAsset(Volume, CACHE_PATH + name + ".asset");
         }
 
-        renderCube = Instantiate(rendererPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        cubeMaterial = renderCube.GetComponent<Renderer>().material;
+        VolumeCube = Instantiate(rendererPrefab, instantiatePosition, Quaternion.identity);
+        VolumeCube.transform.localScale = new Vector3(volumeScale, volumeScale, volumeScale);
+        cubeMaterial = VolumeCube.GetComponent<Renderer>().material;
         cubeMaterial.SetTexture(MaterialTextureName, Volume);
 
         cubeMaterial.SetFloat(DENSITY_TAG, Density);
@@ -63,7 +66,7 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(RED_TAG, 1);
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
-        cuttingPlane = renderCube.GetComponentInChildren<CuttingPlane>();
+        cuttingPlane = VolumeCube.GetComponentInChildren<CuttingPlane>();
         viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
 
         //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
@@ -100,12 +103,6 @@ public class VolumeManager : MonoBehaviour
     public void SetRenderBlue(bool b)
     {
         cubeMaterial.SetInt(BLUE_TAG, b ? 1 : 0);
-    }
-
-    public void SetXScale(float scale) {
-        Transform t;
-        t = renderCube.transform;
-        t.localScale = new Vector3(scale, t.localScale.y, t.localScale.z);
     }
 
     public void SetPlane(Vector4 planePos, Vector4 normal) {

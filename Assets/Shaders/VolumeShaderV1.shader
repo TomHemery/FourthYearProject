@@ -4,7 +4,7 @@
 	{
 		Tags
 		{
-			"Queue" = "Transparent"
+			"Queue" = "Transparent" "RenderType" = "Transparent"
 		}
 
 		CGINCLUDE
@@ -23,6 +23,8 @@
 		//information on slicing plane
 		float4 _PlanePos;
 		float4 _PlaneNormal;
+		//camera depth texture (to help play nicely with mesh objects like the controllers)
+		uniform sampler2D _CameraDepthTexture;
 
 		struct v2f
 		{
@@ -86,6 +88,9 @@
 			float stepSize = dist / float(_SamplingQuality);
 			float3 ds = normalize(rayStop - rayStart) * stepSize;
 			float3 pos = rayStop.xyz + 0.5f;
+
+			//float depth = LinearEyeDepth(tex2D(_CameraDepthTexture, duv).r);
+			//depth *= length(i.ray.xyz);
 
 			for (int i = _SamplingQuality; i >= 0; --i)
 			{

@@ -160,6 +160,7 @@ GameObject:
   - component: {fileID: 708573682}
   - component: {fileID: 7646975400534976851}
   - component: {fileID: 6055062364992753905}
+  - component: {fileID: 7193250109188506133}
   m_Layer: 5
   m_Name: CuttingPlane
   m_TagString: Untagged
@@ -175,7 +176,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 708573681}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -4}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_Children:
   - {fileID: 1582522858}
@@ -275,6 +276,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RotationController: {fileID: 5220341925512304094}
   TranslationController: {fileID: 8007805208485619217}
+--- !u!65 &7193250109188506133
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708573681}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &937892928
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,6 +302,7 @@ GameObject:
   - component: {fileID: 937892931}
   - component: {fileID: 937892930}
   - component: {fileID: 1775671954679727293}
+  - component: {fileID: 7881078101056078233}
   m_Layer: 0
   m_Name: YTilt
   m_TagString: Untagged
@@ -390,6 +405,19 @@ MonoBehaviour:
   CuttingPlane: {fileID: 708573685}
   UIImage: {fileID: 493844869}
   RotationAxis: 89
+--- !u!65 &7881078101056078233
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 937892928}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &951398507
 GameObject:
   m_ObjectHideFlags: 0
@@ -518,6 +546,7 @@ GameObject:
   - component: {fileID: 1242433942}
   - component: {fileID: 1242433941}
   - component: {fileID: 775739800079833398}
+  - component: {fileID: 8627676505592584150}
   m_Layer: 0
   m_Name: ZTilt
   m_TagString: Untagged
@@ -620,6 +649,19 @@ MonoBehaviour:
   CuttingPlane: {fileID: 708573685}
   UIImage: {fileID: 7690010734708739153}
   RotationAxis: 90
+--- !u!65 &8627676505592584150
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242433939}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1582522857
 GameObject:
   m_ObjectHideFlags: 0
@@ -740,9 +782,11 @@ GameObject:
   - component: {fileID: 1170065841949711269}
   - component: {fileID: 1170065841949711274}
   - component: {fileID: 1170065841949711275}
+  - component: {fileID: 1855720869989069709}
+  - component: {fileID: 5052562264285876115}
   m_Layer: 0
   m_Name: VolumeCube
-  m_TagString: Untagged
+  m_TagString: VolumeCube
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -816,11 +860,39 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1170065841949711273}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1855720869989069709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170065841949711273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 543a0145a167fa74abc472be2384e4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!54 &5052562264285876115
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170065841949711273}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &5220341925512304094
 GameObject:
   m_ObjectHideFlags: 0

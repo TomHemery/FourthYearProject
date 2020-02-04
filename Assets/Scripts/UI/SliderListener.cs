@@ -8,17 +8,14 @@ public class SliderListener : MonoBehaviour
 
     public Slider DensitySlider;
     public Slider QualitySlider;
-    public Slider SpacingSlider;
 
     public Text DensityText;
     public Text QualityText;
-    public Text SpacingText;
 
     void Start()
     {
         OnDensitySliderChanged();
         OnQualitySliderChanged();
-        OnSpacingSliderChanged();
     }
 
     public void OnDensitySliderChanged() {
@@ -29,10 +26,5 @@ public class SliderListener : MonoBehaviour
     public void OnQualitySliderChanged() {
         VolumeManager.Instance.SetQuality((int)QualitySlider.value);
         QualityText.text = "" + QualitySlider.value;
-    }
-
-    public void OnSpacingSliderChanged() {
-        VolumeManager.Instance.SetXScale(SpacingSlider.value);
-        SpacingText.text = "" + SpacingSlider.value;
     }
 }

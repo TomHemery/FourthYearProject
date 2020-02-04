@@ -8,7 +8,6 @@ public class ViewResetter : MonoBehaviour
     public Button ResetViewButton;
     public Camera MainCamera;
     public Slider DensitySlider;
-    public Slider SpacingSlider;
 
     public GameObject CuttingPlane { get; private set; } = null;
 
@@ -26,7 +25,6 @@ public class ViewResetter : MonoBehaviour
         cameraStartPosition = MainCamera != null ? MainCamera.transform.position : Vector3.zero;
         cameraStartRotation = MainCamera != null ? MainCamera.transform.rotation : Quaternion.identity;
         startDensity = DensitySlider.value;
-        startSpacing = SpacingSlider.value;
     }
 
     public void SetCuttingPlane(GameObject cp) {
@@ -40,7 +38,6 @@ public class ViewResetter : MonoBehaviour
         if (MainCamera != null) MainCamera.transform.rotation = cameraStartRotation;
 
         DensitySlider.value = startDensity;
-        SpacingSlider.value = startSpacing;
 
         if (CuttingPlane != null) {
             CuttingPlane.transform.position = cuttingPlaneStartPosition;
