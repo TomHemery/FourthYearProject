@@ -31,6 +31,7 @@ public class VolumeManager : MonoBehaviour
     private const string BLUE_TAG = "_Blue";
     private const string PLANE_POSITION_TAG = "_PlanePos";
     private const string PLANE_NORMAL_TAG = "_PlaneNormal";
+    private const string DO_SLICING_TAG = "_DoSlicing";
 
     public const string VOLUMETRIC_DATA_PATH = "Volumetric Data/";
     public const string CACHE_PATH = "Assets/Resources/VolumeCache/";
@@ -39,10 +40,11 @@ public class VolumeManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        if(defaultFolderName != "")LoadVolume(defaultFolderName);
+        if (defaultFolderName != "")LoadVolume(defaultFolderName);
     }
 
     public void LoadVolume(string name) {
+        
         if (VolumeCube != null) Destroy(VolumeCube);
 
         //look for a cached instance of volume
@@ -67,7 +69,7 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
         cuttingPlane = VolumeCube.GetComponentInChildren<CuttingPlane>();
-        viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
+        if(cuttingPlane is object) viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
 
         //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
         //Resources.UnloadUnusedAssets();
@@ -75,7 +77,13 @@ public class VolumeManager : MonoBehaviour
 
     private void Start()
     {
-        SetPlane(cuttingPlane.GetPlanePosition(), cuttingPlane.GetPlaneNormal());
+        if (cuttingPlane is object)
+        {
+            SetPlane(cuttingPlane.GetPlanePosition(), cuttingPlane.GetPlaneNormal());
+            SetDoSlicing(true);
+        }
+        else
+            SetDoSlicing(false);
     }
 
     public void SetDensity(float d)
@@ -108,6 +116,10 @@ public class VolumeManager : MonoBehaviour
     public void SetPlane(Vector4 planePos, Vector4 normal) {
         cubeMaterial.SetVector(PLANE_POSITION_TAG, planePos);
         cubeMaterial.SetVector(PLANE_NORMAL_TAG, normal);
+    }
+
+    public void SetDoSlicing(bool doSlicing) {
+        cubeMaterial.SetInt(DO_SLICING_TAG, doSlicing ? 1 : 0);
     }
 
     //Creates one 3D texture with all colour information
