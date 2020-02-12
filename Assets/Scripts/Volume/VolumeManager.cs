@@ -68,22 +68,11 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(RED_TAG, 1);
         cubeMaterial.SetInt(BLUE_TAG, 1);
         cubeMaterial.SetInt(GREEN_TAG, 1);
-        cuttingPlane = VolumeCube.GetComponentInChildren<CuttingPlane>();
-        if(cuttingPlane is object) viewResetter.SetCuttingPlane(cuttingPlane.gameObject);
+
+        SetDoSlicing(true);
 
         //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
         //Resources.UnloadUnusedAssets();
-    }
-
-    private void Start()
-    {
-        if (cuttingPlane is object)
-        {
-            SetPlane(cuttingPlane.GetPlanePosition(), cuttingPlane.GetPlaneNormal());
-            SetDoSlicing(true);
-        }
-        else
-            SetDoSlicing(false);
     }
 
     public void SetDensity(float d)
@@ -113,9 +102,9 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetInt(BLUE_TAG, b ? 1 : 0);
     }
 
-    public void SetPlane(Vector4 planePos, Vector4 normal) {
-        cubeMaterial.SetVector(PLANE_POSITION_TAG, planePos);
-        cubeMaterial.SetVector(PLANE_NORMAL_TAG, normal);
+    public void SetPlane(Vector3 planePos, Vector3 normal) {
+        cubeMaterial.SetVector(PLANE_POSITION_TAG, VolumeCube.transform.InverseTransformPoint(planePos));
+        cubeMaterial.SetVector(PLANE_NORMAL_TAG, VolumeCube.transform.InverseTransformDirection(normal));
     }
 
     public void SetDoSlicing(bool doSlicing) {

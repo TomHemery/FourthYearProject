@@ -4,25 +4,31 @@ using UnityEngine;
 
 public class CuttingPlane : MonoBehaviour
 {
-    private RectTransform mRectTransform;
-    private Transform parentTransform;
-
-    private void Awake()
-    {
-        mRectTransform = gameObject.GetComponent<RectTransform>();
-        parentTransform = mRectTransform.parent;
-    }
-
     void Update()
     {
         VolumeManager.Instance.SetPlane(GetPlanePosition(), GetPlaneNormal());
     }
 
-    public Vector4 GetPlanePosition() {
-        return transform.localPosition;
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.transform.CompareTag("VolumeCube")) {
+            VolumeManager.Instance.SetDoSlicing(true);
+        }
     }
 
-    public Vector4 GetPlaneNormal() {
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.transform.CompareTag("VolumeCube"))
+        {
+            VolumeManager.Instance.SetDoSlicing(false);
+        }
+    }
+
+    public Vector3 GetPlanePosition() {
+        return transform.position;
+    }
+
+    public Vector3 GetPlaneNormal() {
         return transform.forward;
     }
 }

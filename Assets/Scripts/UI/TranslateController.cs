@@ -13,14 +13,9 @@ public class TranslateController : MonoBehaviour, IDragHandler
     public Transform Back;
     public Transform Front;
 
-    private Vector3 baseRotation;
     private Canvas mCanvas;
 
     GraphicRaycaster m_Raycaster;
-    PointerEventData m_PointerEventData;
-    EventSystem m_EventSystem;
-
-    private static TranslateController activeController = null;
 
     private void Awake()
     {
@@ -33,8 +28,6 @@ public class TranslateController : MonoBehaviour, IDragHandler
         m_Raycaster = GetComponent<GraphicRaycaster>();
         m_Raycaster.ignoreReversedGraphics = false;
         //Fetch the Event System from the Scene
-        m_EventSystem = GetComponent<EventSystem>();
-        baseRotation = CuttingPlane.localRotation.eulerAngles;
         mCanvas.worldCamera = Camera.main;
     }
 
