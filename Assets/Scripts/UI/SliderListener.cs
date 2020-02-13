@@ -8,14 +8,17 @@ public class SliderListener : MonoBehaviour
 
     public Slider DensitySlider;
     public Slider QualitySlider;
+    public Slider ThresholdSlider;
 
     public Text DensityText;
     public Text QualityText;
+    public Text ThresholdText;
 
     void Start()
     {
         OnDensitySliderChanged();
         OnQualitySliderChanged();
+        OnThresholdSliderChanged();
     }
 
     public void OnDensitySliderChanged() {
@@ -26,5 +29,10 @@ public class SliderListener : MonoBehaviour
     public void OnQualitySliderChanged() {
         VolumeManager.Instance.SetQuality((int)QualitySlider.value);
         QualityText.text = "" + QualitySlider.value;
+    }
+
+    public void OnThresholdSliderChanged() {
+        VolumeManager.Instance.SetThreshold(ThresholdSlider.value);
+        ThresholdText.text = "" + ThresholdSlider.value;
     }
 }

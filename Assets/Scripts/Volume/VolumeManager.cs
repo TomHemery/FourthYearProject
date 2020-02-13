@@ -26,6 +26,7 @@ public class VolumeManager : MonoBehaviour
 
     private const string DENSITY_TAG = "_Density";
     private const string SAMPLE_QUALITY_TAG = "_SamplingQuality";
+    private const string THRESHOLD_TAG = "_Threshold";
     private const string RED_TAG = "_Red";
     private const string GREEN_TAG = "_Green";
     private const string BLUE_TAG = "_Blue";
@@ -63,6 +64,7 @@ public class VolumeManager : MonoBehaviour
         cubeMaterial.SetTexture(MaterialTextureName, Volume);
 
         cubeMaterial.SetFloat(DENSITY_TAG, Density);
+        cubeMaterial.SetFloat(THRESHOLD_TAG, 0.0f);
         cubeMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
 
         cubeMaterial.SetInt(RED_TAG, 1);
@@ -80,6 +82,10 @@ public class VolumeManager : MonoBehaviour
         Density = d;
         cubeMaterial.SetFloat(DENSITY_TAG, d);
         
+    }
+
+    public void SetThreshold(float t) {
+        cubeMaterial.SetFloat(THRESHOLD_TAG, t);
     }
 
     public void SetQuality(int q)
