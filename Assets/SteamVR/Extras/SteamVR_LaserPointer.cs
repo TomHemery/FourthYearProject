@@ -126,7 +126,24 @@ namespace Valve.VR.Extras
                 pointer.SetActive(isActive);
             }
             if (!isActive)
+            {   
+                if (dragging)
+                {
+                    PointerEventArgs argsEvent = new PointerEventArgs
+                    {
+                        fromInputSource = pose.inputSource,
+                        distance = 0,
+                        flags = 0,
+                        target = previousContact,
+                        position = Vector3.zero
+                    };
+                    OnPointerUp(argsEvent);
+
+                    dragging = false;
+                    OnEndDrag(argsEvent);
+                }
                 return;
+            }
 
             float dist = 100f;
 
