@@ -21,8 +21,12 @@ public class VolumeManager : MonoBehaviour
     public Vector3 instantiatePosition;
     public float volumeScale = 0.5f;
 
-    private float Density = 1;
-    private int SamplingQuality = 64;
+    public float Density { get; private set; } = 1;
+    public float Threshold { get; private set; } = 0.0f;
+    public int SamplingQuality { get; private set; } = 64;
+    public Vector3 PlanePos { get; private set; } = new Vector3(-100, 0, 0);
+    public Vector3 PlaneNormal { get; private set; } = new Vector3();
+    public bool DoSlicing { get; private set; } = false;
 
     private const string DENSITY_TAG = "_Density";
     private const string SAMPLE_QUALITY_TAG = "_SamplingQuality";
@@ -85,6 +89,7 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void SetThreshold(float t) {
+        Threshold = t;
         cubeMaterial.SetFloat(THRESHOLD_TAG, t);
     }
 
@@ -109,12 +114,15 @@ public class VolumeManager : MonoBehaviour
     }
 
     public void SetPlane(Vector3 planePos, Vector3 normal) {
-        cubeMaterial.SetVector(PLANE_POSITION_TAG, VolumeCube.transform.InverseTransformPoint(planePos));
-        cubeMaterial.SetVector(PLANE_NORMAL_TAG, VolumeCube.transform.InverseTransformDirection(normal));
+        PlanePos = VolumeCube.transform.InverseTransformPoint(planePos);
+        PlaneNormal = VolumeCube.transform.InverseTransformDirection(normal);
+        cubeMaterial.SetVector(PLANE_POSITION_TAG, PlanePos);
+        cubeMaterial.SetVector(PLANE_NORMAL_TAG, PlaneNormal);
     }
 
     public void SetDoSlicing(bool doSlicing) {
         cubeMaterial.SetInt(DO_SLICING_TAG, doSlicing ? 1 : 0);
+        DoSlicing = doSlicing;
     }
 
     //Creates one 3D texture with all colour information

@@ -36,8 +36,8 @@ public class ControllerCollisionBehaviour : MonoBehaviour
     {
         if (other.transform.CompareTag("VolumeCube"))
         {
-            Vector3 relativePos = transform.position - other.transform.position;
-            float density = other.gameObject.GetComponent<SampleVolume>().SampleVolumeDensityAt(relativePos, 1);
+            Vector3 relativePos = other.transform.InverseTransformPoint(transform.position);
+            float density = other.gameObject.GetComponent<SampleVolume>().SampleVolumeDensityAt(relativePos, 2);
 
             if (density > threshold)
             {

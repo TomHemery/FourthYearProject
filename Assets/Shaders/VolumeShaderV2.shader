@@ -143,7 +143,9 @@
 						}
 						else { //we aren't considering the cutting plane
 							fixed4 mask = tex3D(_MainTex, pos + 0.5f);
-							color.xyz += mask.xyz * mask.w;
+							if (mask.x * 0.3 + mask.y * 0.59 + mask.z * 0.11 * mask.w > _Threshold) { //check that brightness (ish) is bigger than threshold 
+								color.xyz += mask.xyz * mask.w;
+							}
 						}
 					}
 					pos -= step; //move forward along the ray

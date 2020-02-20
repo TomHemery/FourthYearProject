@@ -8,6 +8,8 @@ public class SampleVolume : MonoBehaviour
     public Vector3 TexPos { get; private set; } = new Vector3(0,0,0);
     public Vector3 RelativePos { get; private set; } = new Vector3(0, 0, 0);
 
+    private static readonly Vector3 half = new Vector3(0.5f, 0.5f, 0.5f);
+
     /// <summary>
     /// Samples the volume attached to this game object (NB: O(neighbourhood^3))
     /// </summary>
@@ -18,31 +20,37 @@ public class SampleVolume : MonoBehaviour
         //get texture and cache it if we haven't already
         if (tex == null) tex = (Texture3D)gameObject.GetComponent<Renderer>().material.GetTexture(VolumeManager.Instance.MaterialTextureName);
 
-        RelativePos = pos;
+        RelativePos = pos - half;
         Transform cubeTransform = VolumeManager.Instance.VolumeCube.transform;
 
+        //don't sample the volume if it is occluded by the cutting plane
+        Vector3 between = pos - VolumeManager.Instance.PlanePos;
+        float test = Vector3.Dot(between, VolumeManager.Instance.PlaneNormal);
+        if (test <= 0) return 0;
+
         //map relative position to an absolute texture position
-        TexPos = new Vector3((int)Map(pos.x, -1 * cubeTransform.localScale.x / 2, cubeTransform.localScale.x / 2, 0, tex.width),
-                             (int)Map(pos.y, -1 * cubeTransform.localScale.y / 2, cubeTransform.localScale.y / 2, 0, tex.height),
-                             (int)Map(pos.z, -1 * cubeTransform.localScale.z / 2, cubeTransform.localScale.z / 2, 0, tex.depth));
+        TexPos = new Vector3(RelativePos.x * tex.width, RelativePos.y * tex.height, RelativePos.z * tex.depth);
 
         //sample the texture at the relative point (average the neighbourhood)
         float value = 0.0f;
         int numSamples = 0;
         //ouch don't set neighbourhood too high or this will take a while
-        for (int x = -neighbourhood; x <= neighbourhood; x++) 
+        for (int x = -neighbourhood; x <= neighbourhood; x++)
         {
             for (int y = -neighbourhood; y <= neighbourhood; y++)
             {
                 for (int z = -neighbourhood; z <= neighbourhood; z++)
                 {
                     numSamples++;
-                    Color c = tex.GetPixel(Mathf.FloorToInt(TexPos.x), Mathf.FloorToInt(TexPos.y), Mathf.FloorToInt(TexPos.z));
-                    value = (value * (numSamples - 1) + (c.r + c.g + c.b) / 3) / numSamples;
+                    Color c = tex.GetPixel(Mathf.FloorToInt(TexPos.x + x), Mathf.FloorToInt(TexPos.y + y), Mathf.FloorToInt(TexPos.z + z));
+                    value = (value * (numSamples - 1) + (c.r*0.3f + c.g*0.59f + c.b*0.11f)) / numSamples;
                 }
             }
         }
-        //Color c = tex.GetPixel(Mathf.FloorToInt(TexPos.x), Mathf.FloorToInt(TexPos.y), Mathf.FloorToInt(TexPos.z));
+
+        //don't sample if we find that brightness is less than the rendering threshold set in the volume manager 
+        if (value < VolumeManager.Instance.Threshold) value = 0;
+
         return value;
     }
 
