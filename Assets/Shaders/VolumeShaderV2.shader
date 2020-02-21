@@ -40,11 +40,16 @@
 			int _Green;
 			int _Blue;
 
-			//information on slicing plane
-			float4 _PlanePos;
-			float4 _PlaneNormal;
-			int _ReversePlaneSlicing;
-			int _DoSlicing;
+			//information on occlusion plane (erases parts of volumes)
+			float4 _OcclusionPlanePos;
+			float4 _OcclusionPlaneNormal;
+			int _DoOcclusion;
+
+			//information on cutting plane (slices volume in two - works the same as occlusion plane)
+			float4 _CuttingPlanePos;
+			float4 _CuttingPlaneNormal;
+			int _DoCutting;
+
 
 			struct appdata
 			{
@@ -129,19 +134,20 @@
 					float distToCamera = length(localCameraPosition - pos);
 					if (distToCamera <= currDistToCamera)//if we aren't occluded by depth buffer objects
 					{
-						if (_DoSlicing != 0) { //if we are considering the cutting plane
-							//check if occluded by cutting plane 
-							float3 between = pos - _PlanePos.xyz;
-							float val = dot(between, _PlaneNormal.xyz);
-							if (_ReversePlaneSlicing <= 0 && val > 0 || _ReversePlaneSlicing > 0 && val < 0) { //if not occluded by cutting plane
-								//sample the texture (we add on 0.5 as textures are indexed from 0->1 and local position goes from -0.5 -> 0.5)
-								fixed4 mask = tex3D(_MainTex, pos + 0.5f);
-								if (mask.x * 0.3 + mask.y * 0.59 + mask.z * 0.11 * mask.w > _Threshold) { //check that brightness (ish) is bigger than threshold 
-									color.xyz += mask.xyz * mask.w;
-								}
-							}
+						bool sample = true;
+						if (_DoOcclusion != 0) { //if we are considering the occlusion plane
+							//check if occluded by plane 
+							float3 between = pos - _OcclusionPlanePos.xyz;
+							float val = dot(between, _OcclusionPlaneNormal.xyz);
+							if (val <= 0) sample = false;
 						}
-						else { //we aren't considering the cutting plane
+						if (sample && _DoCutting != 0) { //if we are considering the cutting plane 
+							//check if occluded by cutting plane 
+							float3 between = pos - _CuttingPlanePos.xyz;
+							float val = dot(between, _CuttingPlaneNormal.xyz);
+							if (val <= 0) sample = false;
+						}
+						if(sample) { //if we aren't occluded by the plane, or cut off
 							fixed4 mask = tex3D(_MainTex, pos + 0.5f);
 							if (mask.x * 0.3 + mask.y * 0.59 + mask.z * 0.11 * mask.w > _Threshold) { //check that brightness (ish) is bigger than threshold 
 								color.xyz += mask.xyz * mask.w;

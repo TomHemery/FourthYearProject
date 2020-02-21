@@ -6,42 +6,47 @@ using UnityEngine.UI;
 public class ViewResetter : MonoBehaviour
 {
     public Button ResetViewButton;
-    public Camera MainCamera;
+
     public Slider DensitySlider;
+    public Slider QualitySlider;
+    public Slider ThresholdSider;
 
-    public GameObject CuttingPlane { get; private set; } = null;
+    public Toggle RedToggle;
+    public Toggle GreenToggle;
+    public Toggle BlueToggle;
 
-    private Vector3 cameraStartPosition;
-    private Quaternion cameraStartRotation;
+    public GameObject VolumeCubePrefab;
 
-    private Vector3 cuttingPlaneStartPosition;
-    private Quaternion cuttingPlaneStartRotation;
+    private Vector3 occlusionPlaneStartPosition;
+    private Quaternion occlusionPlaneStartRotation;
+    public GameObject occlusionPlane;
 
     private float startDensity;
-    private float startSpacing;
+    private float startThreshold;
+    private float startQuality;
 
-    private void Start()
+    private void Awake()
     {
-        cameraStartPosition = MainCamera != null ? MainCamera.transform.position : Vector3.zero;
-        cameraStartRotation = MainCamera != null ? MainCamera.transform.rotation : Quaternion.identity;
         startDensity = DensitySlider.value;
-    }
+        startQuality = QualitySlider.value;
+        startThreshold = ThresholdSider.value;
 
-    public void SetCuttingPlane(GameObject cp) {
-        cuttingPlaneStartPosition = cp.transform.position;
-        cuttingPlaneStartRotation = cp.transform.rotation;
-        CuttingPlane = cp;
+        occlusionPlaneStartPosition = occlusionPlane.transform.position;
+        occlusionPlaneStartRotation = occlusionPlane.transform.rotation;
     }
 
     public void OnResetViewButtonPressed() {
-        if(MainCamera != null) MainCamera.transform.position = cameraStartPosition;
-        if (MainCamera != null) MainCamera.transform.rotation = cameraStartRotation;
-
         DensitySlider.value = startDensity;
+        QualitySlider.value = startQuality;
+        ThresholdSider.value = startThreshold;
+        occlusionPlane.transform.position = occlusionPlaneStartPosition;
+        occlusionPlane.transform.rotation = occlusionPlaneStartRotation;
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) Destroy(v.gameObject);
+        GameObject newVol = Instantiate(VolumeCubePrefab);
+        newVol.GetComponent<VolumeBehaviour>().LoadVolume(VolumeBehaviour.CurrentVolumeName);
 
-        if (CuttingPlane != null) {
-            CuttingPlane.transform.position = cuttingPlaneStartPosition;
-            CuttingPlane.transform.rotation = cuttingPlaneStartRotation;
-        }
+        RedToggle.isOn = true;
+        BlueToggle.isOn = true;
+        GreenToggle.isOn = true;
     }
 }

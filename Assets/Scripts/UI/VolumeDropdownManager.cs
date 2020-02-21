@@ -8,12 +8,10 @@ public class VolumeDropdownManager : MonoBehaviour
 {
 
     public Dropdown dropdown;
-    bool skipChange = false;
 
-
-    void Start()
+    void Awake()
     {
-        string name = VolumeManager.Instance.defaultFolderName;
+        string name = VolumeBehaviour.defaultFileName;
         int index = -1;
         OptionData option;
         for (int i = 0; i < dropdown.options.Count; i++) {
@@ -24,14 +22,13 @@ public class VolumeDropdownManager : MonoBehaviour
         }
         if (index >= 0)
         {
-            skipChange = true;
             dropdown.value = index;
         }
+        OnSelectOption();
     }
 
     public void OnSelectOption() {
-        if (skipChange) skipChange = false;
-        else VolumeManager.Instance.LoadVolume(dropdown.options[dropdown.value].text);
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.LoadVolume(dropdown.options[dropdown.value].text);
     }
 
 }

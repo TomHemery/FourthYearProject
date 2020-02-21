@@ -22,17 +22,17 @@ public class SliderListener : MonoBehaviour
     }
 
     public void OnDensitySliderChanged() {
-        VolumeManager.Instance.SetDensity(DensitySlider.value);
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.SetDensity(DensitySlider.value);
         DensityText.text = "" + DensitySlider.value;
     }
 
     public void OnQualitySliderChanged() {
-        VolumeManager.Instance.SetQuality((int)QualitySlider.value);
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.SetQuality((int)QualitySlider.value);
         QualityText.text = "" + QualitySlider.value;
     }
 
     public void OnThresholdSliderChanged() {
-        VolumeManager.Instance.SetThreshold(ThresholdSlider.value);
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.SetThreshold(ThresholdSlider.value);
         ThresholdText.text = "" + ThresholdSlider.value;
     }
 }

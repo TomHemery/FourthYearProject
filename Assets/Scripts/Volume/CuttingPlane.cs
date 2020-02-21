@@ -6,13 +6,13 @@ public class CuttingPlane : MonoBehaviour
 {
     void Update()
     {
-        VolumeManager.Instance.SetPlane(GetPlanePosition(), GetPlaneNormal());
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.SetOcclusionPlane(GetPlanePosition(), GetPlaneNormal());
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.transform.CompareTag("VolumeCube")) {
-            VolumeManager.Instance.SetDoSlicing(true);
+            other.gameObject.GetComponent<VolumeBehaviour>().SetDoOcclusion(true);
         }
     }
 
@@ -20,7 +20,7 @@ public class CuttingPlane : MonoBehaviour
     {
         if (other.gameObject.transform.CompareTag("VolumeCube"))
         {
-            VolumeManager.Instance.SetDoSlicing(false);
+            other.gameObject.GetComponent<VolumeBehaviour>().SetDoOcclusion(false);
         }
     }
 

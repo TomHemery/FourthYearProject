@@ -10,6 +10,13 @@ public class SampleVolume : MonoBehaviour
 
     private static readonly Vector3 half = new Vector3(0.5f, 0.5f, 0.5f);
 
+    private VolumeBehaviour mVolumeBehaviour;
+
+    private void Awake()
+    {
+        mVolumeBehaviour = GetComponent<VolumeBehaviour>();
+    }
+
     /// <summary>
     /// Samples the volume attached to this game object (NB: O(neighbourhood^3))
     /// </summary>
@@ -18,14 +25,13 @@ public class SampleVolume : MonoBehaviour
     /// <returns>float density -> average density of the specified position and neighbourhood</returns>
     public float SampleVolumeDensityAt(Vector3 pos, int neighbourhood = 0) {
         //get texture and cache it if we haven't already
-        if (tex == null) tex = (Texture3D)gameObject.GetComponent<Renderer>().material.GetTexture(VolumeManager.Instance.MaterialTextureName);
+        if (tex == null) tex = (Texture3D)gameObject.GetComponent<Renderer>().material.GetTexture(VolumeBehaviour.MAIN_TEXTURE_TAG);
 
         RelativePos = pos - half;
-        Transform cubeTransform = VolumeManager.Instance.VolumeCube.transform;
 
         //don't sample the volume if it is occluded by the cutting plane
-        Vector3 between = pos - VolumeManager.Instance.PlanePos;
-        float test = Vector3.Dot(between, VolumeManager.Instance.PlaneNormal);
+        Vector3 between = pos - mVolumeBehaviour.OcclusionPlanePos;
+        float test = Vector3.Dot(between, mVolumeBehaviour.OcclusionPlaneNormal);
         if (test <= 0) return 0;
 
         //map relative position to an absolute texture position
@@ -49,7 +55,7 @@ public class SampleVolume : MonoBehaviour
         }
 
         //don't sample if we find that brightness is less than the rendering threshold set in the volume manager 
-        if (value < VolumeManager.Instance.Threshold) value = 0;
+        if (value < mVolumeBehaviour.Threshold) value = 0;
 
         return value;
     }
