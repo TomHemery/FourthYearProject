@@ -20,9 +20,14 @@ public class VolumeBehaviour : MonoBehaviour
     public int SamplingQuality { get; private set; } = 64;
     public Vector3 OcclusionPlanePos { get; private set; } = new Vector3(-100, 0, 0);
     public Vector3 OcclusionPlaneNormal { get; private set; } = new Vector3();
-    public Vector3 CuttingPlanePos { get; private set; } = new Vector3(-100, 0, 0);
+
+    public Vector3 CuttingPlanePos = new Vector3();
     public Vector3 CuttingPlaneNormal { get; private set; } = new Vector3();
-    public bool DoSlicing { get; private set; } = false;
+    public bool DoOcclusion { get; private set; } = false;
+    public bool DoCutting { get; private set; } = false;
+
+    [HideInInspector]
+    public Transform CuttingPlaneTransform;
 
     public const string MAIN_TEXTURE_TAG = "_MainTex";
     private const string DENSITY_TAG = "_Density";
@@ -34,6 +39,9 @@ public class VolumeBehaviour : MonoBehaviour
     private const string OCCLUSION_POS_TAG = "_OcclusionPlanePos";
     private const string OCCLUSION_NORMAL_TAG = "_OcclusionPlaneNormal";
     private const string DO_OCCLUSION_TAG = "_DoOcclusion";
+    private const string CUTTING_PLANE_TAG = "_CuttingPlanePos";
+    private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormal";
+    private const string DO_CUTTING_TAG = "_DoCutting";
 
     public const string VOLUMETRIC_DATA_PATH = "Volumetric Data/";
     public const string CACHE_PATH = "Assets/Resources/VolumeCache/";
@@ -43,6 +51,7 @@ public class VolumeBehaviour : MonoBehaviour
     {
         if (AllVolumes == null) AllVolumes = new List<VolumeBehaviour>();
         AllVolumes.Add(this);
+        CuttingPlaneTransform = transform.GetChild(0);
     }
 
     private void OnDestroy()
@@ -50,12 +59,16 @@ public class VolumeBehaviour : MonoBehaviour
         AllVolumes.Remove(this);
     }
 
+    private void Update()
+    {
+        if (DoCutting) SetCuttingPlane(CuttingPlaneTransform.position, CuttingPlaneTransform.forward);
+    }
+
     public void LoadVolume(string name)
     {
         CurrentVolumeName = name;
         //look for a cached instance of volume
         VolumeTexture = Resources.Load<Texture3D>(CACHE_PATH_SHORT + name);
-        Debug.Log("Looking for: " + CACHE_PATH_SHORT + name);
         //if none exists then create it
         if (VolumeTexture == null)
         {
@@ -114,18 +127,31 @@ public class VolumeBehaviour : MonoBehaviour
         mMaterial.SetInt(BLUE_TAG, b ? 1 : 0);
     }
 
-    public void SetOcclusionPlane(Vector3 planePos, Vector3 normal)
+    public void SetOcclusionPlane(Vector3 planePos, Vector3 planeNormal)
     {
         OcclusionPlanePos = transform.InverseTransformPoint(planePos);
-        OcclusionPlaneNormal = transform.InverseTransformDirection(normal);
+        OcclusionPlaneNormal = transform.InverseTransformDirection(planeNormal);
         mMaterial.SetVector(OCCLUSION_POS_TAG, OcclusionPlanePos);
         mMaterial.SetVector(OCCLUSION_NORMAL_TAG, OcclusionPlaneNormal);
+    }
+
+    public void SetCuttingPlane(Vector3 planePos, Vector3 planeNormal) {
+        CuttingPlanePos = transform.InverseTransformPoint(planePos);
+        CuttingPlaneNormal = transform.InverseTransformDirection(planeNormal);
+        mMaterial.SetVector(CUTTING_PLANE_TAG, CuttingPlanePos);
+        mMaterial.SetVector(CUTTING_NORMAL_TAG, CuttingPlaneNormal);
     }
 
     public void SetDoOcclusion(bool doOcclusion)
     {
         mMaterial.SetInt(DO_OCCLUSION_TAG, doOcclusion ? 1 : 0);
-        DoSlicing = doOcclusion;
+        DoOcclusion = doOcclusion;
+    }
+
+    public void SetDoCutting(bool doCutting) 
+    {
+        mMaterial.SetInt(DO_CUTTING_TAG, doCutting ? 1 : 0);
+        DoCutting = doCutting;
     }
 
     //Creates one 3D texture with all colour information
@@ -151,5 +177,21 @@ public class VolumeBehaviour : MonoBehaviour
         texture.SetPixels(colorArray);
         texture.Apply();
         return texture;
+    }
+
+    public GameObject Split() {
+        GameObject clone = Instantiate(gameObject);
+
+        clone.GetComponent<VolumeBehaviour>().LoadVolume(CurrentVolumeName);
+        clone.GetComponent<VolumeBehaviour>().CuttingPlaneTransform.Rotate(0, 180, 0);
+
+        Vector3 offset = CuttingPlaneTransform.forward * 0.1f;
+        clone.transform.position -= offset;
+        transform.position += offset;
+
+        SetDoCutting(true);
+        clone.GetComponent<VolumeBehaviour>().SetDoCutting(true);
+
+        return clone;
     }
 }

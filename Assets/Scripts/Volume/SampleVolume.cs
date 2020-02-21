@@ -29,10 +29,23 @@ public class SampleVolume : MonoBehaviour
 
         RelativePos = pos - half;
 
-        //don't sample the volume if it is occluded by the cutting plane
-        Vector3 between = pos - mVolumeBehaviour.OcclusionPlanePos;
-        float test = Vector3.Dot(between, mVolumeBehaviour.OcclusionPlaneNormal);
-        if (test <= 0) return 0;
+        Vector3 between;
+        float test;
+        //don't sample the volume if it is occluded by the occlusion plane
+        if (mVolumeBehaviour.DoOcclusion)
+        {
+            between = pos - mVolumeBehaviour.OcclusionPlanePos;
+            test = Vector3.Dot(between, mVolumeBehaviour.OcclusionPlaneNormal);
+            if (test <= 0) return 0;
+        }
+
+        if (mVolumeBehaviour.DoCutting)
+        {
+            //don't sample the volume if it is occluded by the cutting plane 
+            between = pos - mVolumeBehaviour.CuttingPlanePos;
+            test = Vector3.Dot(between, mVolumeBehaviour.CuttingPlaneNormal);
+            if (test <= 0) return 0;
+        }
 
         //map relative position to an absolute texture position
         TexPos = new Vector3(RelativePos.x * tex.width, RelativePos.y * tex.height, RelativePos.z * tex.depth);

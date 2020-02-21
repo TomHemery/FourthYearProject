@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CuttingPlane : MonoBehaviour
+public class OcclusionPlane : MonoBehaviour
 {
     void Update()
     {

@@ -32,8 +32,11 @@ public class LaserPointerEventWrapper : MonoBehaviour
 
     private void OnPointerUp(object sender, PointerEventArgs e)
     {
-        IPointerUpHandler upHandler = e.target.GetComponent<IPointerUpHandler>();
-        upHandler?.OnPointerUp(new PointerEventData(EventSystem.current));
+        if (e.target != null)
+        {
+            IPointerUpHandler upHandler = e.target.GetComponent<IPointerUpHandler>();
+            upHandler?.OnPointerUp(new PointerEventData(EventSystem.current));
+        }
     }
 
     private void OnPointerDown(object sender, PointerEventArgs e) {
@@ -49,10 +52,13 @@ public class LaserPointerEventWrapper : MonoBehaviour
     }
 
     private void OnPointerEndDrag(object sender, PointerEventArgs e) {
-        IEndDragHandler dragHandler = e.target.GetComponent<IEndDragHandler>();
-        PointerEventData dat = new PointerEventData(EventSystem.current);
-        dat.position = e.position;
-        dragHandler?.OnEndDrag(dat);
+        if (e.target != null)
+        {
+            IEndDragHandler dragHandler = e.target.GetComponent<IEndDragHandler>();
+            PointerEventData dat = new PointerEventData(EventSystem.current);
+            dat.position = e.position;
+            dragHandler?.OnEndDrag(dat);
+        }
     }
 
     private void OnPointerDrag(object sender, PointerEventArgs e) {

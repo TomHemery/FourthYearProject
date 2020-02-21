@@ -9,7 +9,6 @@ public class ControllerCollisionBehaviour : MonoBehaviour
     public SteamVR_Input_Sources input;
     private Light indicatorLight;
 
-    public bool TouchingSomething { get; private set; } = false;
     public GameObject TouchedObject { get; private set; } = null;
     public bool DoHaptics = true;
 
@@ -26,7 +25,6 @@ public class ControllerCollisionBehaviour : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.transform.CompareTag("VolumeCube")) {
-            TouchingSomething = true;
             TouchedObject = other.gameObject;
             indicatorLight.color = touchColor;
         }
@@ -42,28 +40,24 @@ public class ControllerCollisionBehaviour : MonoBehaviour
             if (density > threshold)
             {
                 TouchedObject = other.gameObject;
-                TouchingSomething = true;
                 indicatorLight.color = touchColor;
-                if (DoHaptics) hapticAction.Execute(0, 0.01f, density * 50 + 60, density * 100, input);
+                if (DoHaptics) hapticAction.Execute(0, 0.01f, 150, density, input);
             }
             else
             {
-                TouchingSomething = false;
-                TouchedObject = null;
+                if(TouchedObject == other.gameObject) TouchedObject = null;
                 indicatorLight.color = noTouchColor;
             }
         }
         else {
             TouchedObject = other.gameObject;
-            TouchingSomething = true;
             indicatorLight.color = touchColor;
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        TouchingSomething = false;
-        TouchedObject = null;
+        if(TouchedObject == other.gameObject) TouchedObject = null;
         indicatorLight.color = noTouchColor;
     }
 }
