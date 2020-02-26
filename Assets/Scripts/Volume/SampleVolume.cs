@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SampleVolume : MonoBehaviour
 {
-    Texture3D tex = null;
     public Vector3 TexPos { get; private set; } = new Vector3(0,0,0);
     public Vector3 RelativePos { get; private set; } = new Vector3(0, 0, 0);
 
@@ -24,8 +23,6 @@ public class SampleVolume : MonoBehaviour
     /// <param name="neighbourhood">how wide to make the neighbourhood (1 = +/- 1 in each x y and z)</param>
     /// <returns>float density -> average density of the specified position and neighbourhood</returns>
     public float SampleVolumeDensityAt(Vector3 pos, int neighbourhood = 0) {
-        //get texture and cache it if we haven't already
-        if (tex == null) tex = (Texture3D)gameObject.GetComponent<Renderer>().material.GetTexture(VolumeBehaviour.MAIN_TEXTURE_TAG);
 
         RelativePos = pos - half;
 
@@ -48,7 +45,7 @@ public class SampleVolume : MonoBehaviour
         }
 
         //map relative position to an absolute texture position
-        TexPos = new Vector3(RelativePos.x * tex.width, RelativePos.y * tex.height, RelativePos.z * tex.depth);
+        TexPos = new Vector3(RelativePos.x * VolumeBehaviour.VolumeTexture.width, RelativePos.y * VolumeBehaviour.VolumeTexture.height, RelativePos.z * VolumeBehaviour.VolumeTexture.depth);
 
         //sample the texture at the relative point (average the neighbourhood)
         float value = 0.0f;
@@ -61,7 +58,7 @@ public class SampleVolume : MonoBehaviour
                 for (int z = -neighbourhood; z <= neighbourhood; z++)
                 {
                     numSamples++;
-                    Color c = tex.GetPixel(Mathf.FloorToInt(TexPos.x + x), Mathf.FloorToInt(TexPos.y + y), Mathf.FloorToInt(TexPos.z + z));
+                    Color c = VolumeBehaviour.VolumeTexture.GetPixel(Mathf.FloorToInt(TexPos.x + x), Mathf.FloorToInt(TexPos.y + y), Mathf.FloorToInt(TexPos.z + z));
                     value = (value * (numSamples - 1) + (c.r*0.3f + c.g*0.59f + c.b*0.11f)) / numSamples;
                 }
             }

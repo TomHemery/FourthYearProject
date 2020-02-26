@@ -25,8 +25,11 @@ public class ViewResetter : MonoBehaviour
     private float startThreshold;
     private float startQuality;
 
+    public static ViewResetter Instance { get; private set; } = null;
+
     private void Awake()
     {
+        if (Instance == null) Instance = this;
         startDensity = DensitySlider.value;
         startQuality = QualitySlider.value;
         startThreshold = ThresholdSider.value;

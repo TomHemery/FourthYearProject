@@ -9,7 +9,6 @@ public class VolumeDropdownManager : MonoBehaviour
 {
 
     public Dropdown dropdown;
-    public string volumetricDataPath = "Assets/Resources/Volumetric Data/";
 
     int startIndex = 0;
 
@@ -17,7 +16,7 @@ public class VolumeDropdownManager : MonoBehaviour
     {
         //look for volume folders
         string name = VolumeBehaviour.defaultFileName;
-        string[] directories = Directory.GetDirectories(Directory.GetCurrentDirectory() + "/" + volumetricDataPath);
+        string[] directories = Directory.GetDirectories(Directory.GetCurrentDirectory() + "/" + VolumeBehaviour.VOLUMETRIC_DATA_PATH);
         List<OptionData> options = new List<OptionData>();
 
         //build the options list
@@ -45,6 +44,7 @@ public class VolumeDropdownManager : MonoBehaviour
     /// Loads the selected volume from the dropdown into all present volume renderers
     /// </summary>
     private void OnSelectOption() {
+        ViewResetter.Instance.OnResetViewButtonPressed();
         foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) v.LoadVolume(dropdown.options[dropdown.value].text);
     }
 

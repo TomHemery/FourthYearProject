@@ -1,15 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using System.Linq;
 using UnityEditor;
-
 public class VolumeBehaviour : MonoBehaviour
 {
     public static List<VolumeBehaviour> AllRenderingVolumes { get; private set; } = null;
     public static string CurrentVolumeName { get; private set; } = null;
 
-    public Texture3D VolumeTexture { get; private set; }
+    public static Texture3D VolumeTexture { get; private set; }
     private Material mMaterial;
     private Texture2D[] slices;
 
@@ -47,9 +47,8 @@ public class VolumeBehaviour : MonoBehaviour
     private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormal";
     private const string DO_CUTTING_TAG = "_DoCutting";
 
-    public const string VOLUMETRIC_DATA_PATH = "Volumetric Data/";
-    public const string CACHE_PATH = "Assets/Resources/VolumeCache/";
-    public const string CACHE_PATH_SHORT = "VolumeCache/";
+    public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
+    public const string CACHE_PATH = "/VolumetricCache/";
 
     private void Awake()
     {
@@ -70,15 +69,10 @@ public class VolumeBehaviour : MonoBehaviour
 
     public void LoadVolume(string name)
     {
-        CurrentVolumeName = name;
-        //look for a cached instance of volume
-        VolumeTexture = Resources.Load<Texture3D>(CACHE_PATH_SHORT + name);
-        //if none exists then create it
-        if (VolumeTexture == null)
+        if (CurrentVolumeName != name)
         {
-            slices = Resources.LoadAll(VOLUMETRIC_DATA_PATH + name, typeof(Texture2D)).Cast<Texture2D>().ToArray();
-            VolumeTexture = CreateTexture3D(slices);
-            AssetDatabase.CreateAsset(VolumeTexture, CACHE_PATH + name + ".asset");
+            CurrentVolumeName = name;
+            VolumeTexture = LoadFromDisk(name);
         }
 
         mMaterial = GetComponent<Renderer>().material;
@@ -96,6 +90,26 @@ public class VolumeBehaviour : MonoBehaviour
 
         //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
         //Resources.UnloadUnusedAssets();
+    }
+
+    Texture3D LoadFromDisk(string name) {
+        string path = Directory.GetCurrentDirectory() + VOLUMETRIC_DATA_PATH + name;
+        string[] slicePaths = Directory.GetFiles(path);
+
+        if (slicePaths.Length > 0) {
+
+            System.Drawing.Image test = System.Drawing.Image.FromFile(slicePaths[0]);
+            Vector3Int dims = new Vector3Int(test.Width, test.Height, slicePaths.Length);
+            
+            Texture2D[] slices = new Texture2D[slicePaths.Length];
+            for (int i = 0; i < slicePaths.Length; i++) {
+                slices[i] = new Texture2D(dims.x, dims.y);
+                slices[i].LoadImage(File.ReadAllBytes(slicePaths[i]));
+            }
+
+            return CreateTexture3D(slices);
+        }
+        return null;
     }
 
     public void SetDensity(float d)
