@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityEngine.UI.Dropdown;
@@ -8,27 +9,43 @@ public class VolumeDropdownManager : MonoBehaviour
 {
 
     public Dropdown dropdown;
+    public string volumetricDataPath = "Assets/Resources/Volumetric Data/";
+
+    int startIndex = 0;
 
     void Awake()
     {
+        //look for volume folders
         string name = VolumeBehaviour.defaultFileName;
-        int index = -1;
-        OptionData option;
-        for (int i = 0; i < dropdown.options.Count; i++) {
-            option = dropdown.options[i];
-            if (option.text == name) {
-                index = i;
-            }
+        string[] directories = Directory.GetDirectories(Directory.GetCurrentDirectory() + "/" + volumetricDataPath);
+        List<OptionData> options = new List<OptionData>();
+
+        //build the options list
+        string folder;
+        
+        for (int i = 0; i < directories.Length; i++) {
+            folder = Path.GetFileNameWithoutExtension(directories[i]);
+            if (folder == name) startIndex = i;
+            options.Add(new OptionData(folder));
         }
-        if (index >= 0)
+        dropdown.AddOptions(options);
+
+    }
+
+    private void Start()
+    {
+        if (startIndex >= 0)
         {
-            dropdown.value = index;
+            dropdown.value = startIndex;
         }
         OnSelectOption();
     }
 
-    public void OnSelectOption() {
-        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.LoadVolume(dropdown.options[dropdown.value].text);
+    /// <summary>
+    /// Loads the selected volume from the dropdown into all present volume renderers
+    /// </summary>
+    private void OnSelectOption() {
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) v.LoadVolume(dropdown.options[dropdown.value].text);
     }
 
 }

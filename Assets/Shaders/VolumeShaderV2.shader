@@ -16,7 +16,7 @@
 
 			CGPROGRAM
 			#include "UnityCG.cginc"
-			#pragma target 3.0
+			#pragma target 4.0
 			#pragma vertex vert
 			#pragma fragment frag
 
@@ -126,8 +126,11 @@
 				//work out how far from the camera the current fragment in the depth buffer is 
 				float currDistToCamera = LinearEyeDepth(tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)).r);
 
+				bool sampledAtLastPoint = false;
+
 				//step from the back of the box forward along the ray, sampling the texture as we go
 				fixed4  color = fixed4(0, 0, 0, 0);
+				[loop]
 				for (int stepCount = _SamplingQuality; stepCount >= 0; --stepCount)
 				{
 					//work out the distance to the camera from the current position
@@ -152,6 +155,10 @@
 							if (mask.x * 0.3 + mask.y * 0.59 + mask.z * 0.11 * mask.w > _Threshold) { //check that brightness (ish) is bigger than threshold 
 								color.xyz += mask.xyz * mask.w;
 							}
+							sampledAtLastPoint = true; //flag that we have actually taken a sample of the volume
+						}
+						else if (sampledAtLastPoint) { //if we stop sampling then we know that the ray has left the samplable area of the volume and we can stop the ray 
+							break;
 						}
 					}
 					pos -= step; //move forward along the ray

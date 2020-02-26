@@ -11,11 +11,20 @@ public class EnableUIOnGripPressed : MonoBehaviour
     public GameObject uiTarget;
     public SteamVR_LaserPointer laserPointerTarget;
 
+    bool firstUpdate = true;
+
     // Start is called before the first frame update
     void Start()
     {
-        if(uiTarget != null) uiTarget.SetActive(false);
         if (laserPointerTarget != null) laserPointerTarget.active = false;
+    }
+
+    private void Update()
+    {
+        if (firstUpdate) {
+            firstUpdate = false;
+            if(uiTarget != null)uiTarget.SetActive(false);
+        }
     }
 
     private void OnEnable()

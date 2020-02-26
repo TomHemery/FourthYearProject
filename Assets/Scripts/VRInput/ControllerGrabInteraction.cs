@@ -50,6 +50,7 @@ public class ControllerGrabInteraction : MonoBehaviour
                 float dist = Vector3.Distance(transform.position, otherHandInteraction.transform.position);
                 if (dist > ripThreshold)
                 {
+                    GrabbedTransform.GetComponent<VolumeBehaviour>().CuttingPlaneTransform.LookAt(transform.position);
                     GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split();
 
                     if (Vector3.Distance(newHalf.transform.position, transform.position) < Vector3.Distance(newHalf.transform.position, otherHandInteraction.transform.position)){

@@ -41,7 +41,7 @@ public class ViewResetter : MonoBehaviour
         ThresholdSider.value = startThreshold;
         occlusionPlane.transform.position = occlusionPlaneStartPosition;
         occlusionPlane.transform.rotation = occlusionPlaneStartRotation;
-        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) Destroy(v.gameObject);
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) Destroy(v.gameObject);
         GameObject newVol = Instantiate(VolumeCubePrefab);
         newVol.GetComponent<VolumeBehaviour>().LoadVolume(VolumeBehaviour.CurrentVolumeName);
 

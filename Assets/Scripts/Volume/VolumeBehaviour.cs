@@ -6,7 +6,7 @@ using UnityEditor;
 
 public class VolumeBehaviour : MonoBehaviour
 {
-    public static List<VolumeBehaviour> AllVolumes { get; private set; } = null;
+    public static List<VolumeBehaviour> AllRenderingVolumes { get; private set; } = null;
     public static string CurrentVolumeName { get; private set; } = null;
 
     public Texture3D VolumeTexture { get; private set; }
@@ -25,6 +25,10 @@ public class VolumeBehaviour : MonoBehaviour
     public Vector3 CuttingPlaneNormal { get; private set; } = new Vector3();
     public bool DoOcclusion { get; private set; } = false;
     public bool DoCutting { get; private set; } = false;
+
+    public bool RenderRed { get; private set; } = true;
+    public bool RenderGreen { get; private set; } = true;
+    public bool RenderBlue { get; private set; } = true;
 
     [HideInInspector]
     public Transform CuttingPlaneTransform;
@@ -49,14 +53,14 @@ public class VolumeBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        if (AllVolumes == null) AllVolumes = new List<VolumeBehaviour>();
-        AllVolumes.Add(this);
         CuttingPlaneTransform = transform.GetChild(0);
+        if (AllRenderingVolumes == null) AllRenderingVolumes = new List<VolumeBehaviour>();
+        AllRenderingVolumes.Add(this);
     }
 
     private void OnDestroy()
     {
-        AllVolumes.Remove(this);
+        AllRenderingVolumes.Remove(this);
     }
 
     private void Update()
@@ -115,15 +119,18 @@ public class VolumeBehaviour : MonoBehaviour
 
     public void SetRenderRed(bool r)
     {
+        RenderRed = r;
         mMaterial.SetInt(RED_TAG, r ? 1 : 0);
     }
     public void SetRenderGreen(bool g)
     {
+        RenderGreen = g;
         mMaterial.SetInt(GREEN_TAG, g ? 1 : 0);
     }
 
     public void SetRenderBlue(bool b)
     {
+        RenderBlue = b;
         mMaterial.SetInt(BLUE_TAG, b ? 1 : 0);
     }
 
@@ -190,6 +197,17 @@ public class VolumeBehaviour : MonoBehaviour
         transform.position += offset;
 
         SetDoCutting(true);
+        VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
+        cloneBehaviour.SetDoCutting(true);
+
+        cloneBehaviour.SetRenderRed(RenderRed);
+        cloneBehaviour.SetRenderGreen(RenderGreen);
+        cloneBehaviour.SetRenderBlue(RenderBlue);
+
+        cloneBehaviour.SetThreshold(Threshold);
+        cloneBehaviour.SetDensity(Density);
+        cloneBehaviour.SetQuality(SamplingQuality);
+
         clone.GetComponent<VolumeBehaviour>().SetDoCutting(true);
 
         return clone;

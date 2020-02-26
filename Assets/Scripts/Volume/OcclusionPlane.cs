@@ -6,7 +6,7 @@ public class OcclusionPlane : MonoBehaviour
 {
     void Update()
     {
-        foreach (VolumeBehaviour v in VolumeBehaviour.AllVolumes) v.SetOcclusionPlane(GetPlanePosition(), GetPlaneNormal());
+        foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) v.SetOcclusionPlane(GetPlanePosition(), GetPlaneNormal());
     }
 
     private void OnTriggerEnter(Collider other)
