@@ -38,10 +38,16 @@ public class SampleVolume : MonoBehaviour
 
         if (mVolumeBehaviour.DoCutting)
         {
-            //don't sample the volume if it is occluded by the cutting plane 
-            between = pos - mVolumeBehaviour.CuttingPlanePos;
-            test = Vector3.Dot(between, mVolumeBehaviour.CuttingPlaneNormal);
-            if (test <= 0) return 0;
+            //don't sample the volume if it is occluded by a cutting plane 
+            for (int i = 0; i < mVolumeBehaviour.numActiveCuttingPlanes; i++) {
+                Vector3 planePos = mVolumeBehaviour.CuttingPlanePositions[i];
+                Vector3 planeNormal = mVolumeBehaviour.CuttingPlaneNormals[i];
+                between = pos - planePos;
+                test = Vector3.Dot(between, planeNormal);
+                if (test <= 0) return 0;
+            }
+            
+            
         }
 
         //map relative position to an absolute texture position

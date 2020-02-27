@@ -46,8 +46,10 @@
 			int _DoOcclusion;
 
 			//information on cutting plane (slices volume in two - works the same as occlusion plane)
-			float4 _CuttingPlanePos;
-			float4 _CuttingPlaneNormal;
+			#define MAX_CUTTING_PLANES 5
+			float4 _CuttingPlanePositions[MAX_CUTTING_PLANES];
+			float4 _CuttingPlaneNormals[MAX_CUTTING_PLANES];
+			int _NumCuttingPlanes;
 			int _DoCutting;
 
 
@@ -144,11 +146,18 @@
 							float val = dot(between, _OcclusionPlaneNormal.xyz);
 							if (val <= 0) sample = false;
 						}
-						if (sample && _DoCutting != 0) { //if we are considering the cutting plane 
-							//check if occluded by cutting plane 
-							float3 between = pos - _CuttingPlanePos.xyz;
-							float val = dot(between, _CuttingPlaneNormal.xyz);
-							if (val <= 0) sample = false;
+						if (sample && _DoCutting != 0) { //if we are considering the cutting planes
+							//check if occluded by any cutting plane in the list
+							int index = 0;
+							[unroll(MAX_CUTTING_PLANES)]
+							for (index; index < _NumCuttingPlanes; index++) {
+								float3 between = pos - _CuttingPlanePositions[index].xyz;
+								float val = dot(between, _CuttingPlaneNormals[index].xyz);
+								if (val <= 0) {
+									sample = false;
+									break;
+								}	
+							}
 						}
 						if(sample) { //if we aren't occluded by the plane, or cut off
 							fixed4 mask = tex3D(_MainTex, pos + 0.5f);

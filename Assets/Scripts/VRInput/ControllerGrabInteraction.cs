@@ -48,10 +48,10 @@ public class ControllerGrabInteraction : MonoBehaviour
             if (GrabbedTransform.gameObject.CompareTag("VolumeCube"))//if we are grabbing a volume cube
             {
                 float dist = Vector3.Distance(transform.position, otherHandInteraction.transform.position);
-                if (dist > ripThreshold)
+                VolumeBehaviour volumeBehaviour = GrabbedTransform.GetComponent<VolumeBehaviour>();
+                if (dist > ripThreshold && volumeBehaviour.numActiveCuttingPlanes < volumeBehaviour.cuttingPlaneTransforms.Length)
                 {
-                    GrabbedTransform.GetComponent<VolumeBehaviour>().CuttingPlaneTransform.LookAt(transform.position);
-                    GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split();
+                    GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split(transform.position);
 
                     if (Vector3.Distance(newHalf.transform.position, transform.position) < Vector3.Distance(newHalf.transform.position, otherHandInteraction.transform.position)){
                         GrabbedTransform.SetParent(otherHandInteraction.transform);

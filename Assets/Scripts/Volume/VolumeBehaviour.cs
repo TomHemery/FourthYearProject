@@ -21,17 +21,12 @@ public class VolumeBehaviour : MonoBehaviour
     public Vector3 OcclusionPlanePos { get; private set; } = new Vector3(-100, 0, 0);
     public Vector3 OcclusionPlaneNormal { get; private set; } = new Vector3();
 
-    public Vector3 CuttingPlanePos = new Vector3();
-    public Vector3 CuttingPlaneNormal { get; private set; } = new Vector3();
     public bool DoOcclusion { get; private set; } = false;
     public bool DoCutting { get; private set; } = false;
 
     public bool RenderRed { get; private set; } = true;
     public bool RenderGreen { get; private set; } = true;
     public bool RenderBlue { get; private set; } = true;
-
-    [HideInInspector]
-    public Transform CuttingPlaneTransform;
 
     public const string MAIN_TEXTURE_TAG = "_MainTex";
     private const string DENSITY_TAG = "_Density";
@@ -43,16 +38,29 @@ public class VolumeBehaviour : MonoBehaviour
     private const string OCCLUSION_POS_TAG = "_OcclusionPlanePos";
     private const string OCCLUSION_NORMAL_TAG = "_OcclusionPlaneNormal";
     private const string DO_OCCLUSION_TAG = "_DoOcclusion";
-    private const string CUTTING_PLANE_TAG = "_CuttingPlanePos";
-    private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormal";
+    private const string CUTTING_PLANE_TAG = "_CuttingPlanePositions";
+    private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormals";
     private const string DO_CUTTING_TAG = "_DoCutting";
+    private const string NUM_CUTTING_PLANES_TAG = "_NumCuttingPlanes";
 
     public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
     public const string CACHE_PATH = "/VolumetricCache/";
 
+    private const int MAX_CUTTING_PLANES = 5;
+    [HideInInspector]
+    public int numActiveCuttingPlanes = 0;
+    [HideInInspector]
+    public Transform [] cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
+
+    public Vector4[] CuttingPlanePositions { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+    public Vector4[] CuttingPlaneNormals { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+
     private void Awake()
     {
-        CuttingPlaneTransform = transform.GetChild(0);
+        for (int i = 0; i < transform.childCount; i++) {
+            cuttingPlaneTransforms[i] = transform.GetChild(i);
+        }
+
         if (AllRenderingVolumes == null) AllRenderingVolumes = new List<VolumeBehaviour>();
         AllRenderingVolumes.Add(this);
     }
@@ -64,7 +72,9 @@ public class VolumeBehaviour : MonoBehaviour
 
     private void Update()
     {
-        if (DoCutting) SetCuttingPlane(CuttingPlaneTransform.position, CuttingPlaneTransform.forward);
+        if (DoCutting) {
+            SetCuttingPlanes();
+        }
     }
 
     public void LoadVolume(string name)
@@ -87,9 +97,6 @@ public class VolumeBehaviour : MonoBehaviour
         mMaterial.SetInt(GREEN_TAG, 1);
 
         SetDoOcclusion(true);
-
-        //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
-        //Resources.UnloadUnusedAssets();
     }
 
     Texture3D LoadFromDisk(string name) {
@@ -156,11 +163,16 @@ public class VolumeBehaviour : MonoBehaviour
         mMaterial.SetVector(OCCLUSION_NORMAL_TAG, OcclusionPlaneNormal);
     }
 
-    public void SetCuttingPlane(Vector3 planePos, Vector3 planeNormal) {
-        CuttingPlanePos = transform.InverseTransformPoint(planePos);
-        CuttingPlaneNormal = transform.InverseTransformDirection(planeNormal);
-        mMaterial.SetVector(CUTTING_PLANE_TAG, CuttingPlanePos);
-        mMaterial.SetVector(CUTTING_NORMAL_TAG, CuttingPlaneNormal);
+    public void SetCuttingPlanes() {
+        for (int i = 0; i < numActiveCuttingPlanes; i++)
+        {
+            CuttingPlanePositions[i] = transform.InverseTransformPoint(cuttingPlaneTransforms[i].position);
+            CuttingPlaneNormals[i] = transform.InverseTransformDirection(cuttingPlaneTransforms[i].forward);
+        }
+
+        mMaterial.SetVectorArray(CUTTING_PLANE_TAG, CuttingPlanePositions);
+        mMaterial.SetVectorArray(CUTTING_NORMAL_TAG, CuttingPlaneNormals);
+        mMaterial.SetInt(NUM_CUTTING_PLANES_TAG, numActiveCuttingPlanes);
     }
 
     public void SetDoOcclusion(bool doOcclusion)
@@ -200,30 +212,36 @@ public class VolumeBehaviour : MonoBehaviour
         return texture;
     }
 
-    public GameObject Split() {
-        GameObject clone = Instantiate(gameObject);
+    public GameObject Split(Vector3 target) {
+        if (numActiveCuttingPlanes < MAX_CUTTING_PLANES)
+        {
+            cuttingPlaneTransforms[numActiveCuttingPlanes].LookAt(target);
 
-        clone.GetComponent<VolumeBehaviour>().LoadVolume(CurrentVolumeName);
-        clone.GetComponent<VolumeBehaviour>().CuttingPlaneTransform.Rotate(0, 180, 0);
+            GameObject clone = Instantiate(gameObject);
 
-        Vector3 offset = CuttingPlaneTransform.forward * 0.1f;
-        clone.transform.position -= offset;
-        transform.position += offset;
+            VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
+            cloneBehaviour.LoadVolume(CurrentVolumeName);
 
-        SetDoCutting(true);
-        VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
-        cloneBehaviour.SetDoCutting(true);
+            SetDoCutting(true);
+            cloneBehaviour.SetDoCutting(true);
+            numActiveCuttingPlanes++;
+            cloneBehaviour.numActiveCuttingPlanes++;
 
-        cloneBehaviour.SetRenderRed(RenderRed);
-        cloneBehaviour.SetRenderGreen(RenderGreen);
-        cloneBehaviour.SetRenderBlue(RenderBlue);
+            cloneBehaviour.cuttingPlaneTransforms[numActiveCuttingPlanes - 1].forward = -cuttingPlaneTransforms[numActiveCuttingPlanes - 1].forward;
 
-        cloneBehaviour.SetThreshold(Threshold);
-        cloneBehaviour.SetDensity(Density);
-        cloneBehaviour.SetQuality(SamplingQuality);
+            cloneBehaviour.SetRenderRed(RenderRed);
+            cloneBehaviour.SetRenderGreen(RenderGreen);
+            cloneBehaviour.SetRenderBlue(RenderBlue);
 
-        clone.GetComponent<VolumeBehaviour>().SetDoCutting(true);
+            cloneBehaviour.SetThreshold(Threshold);
+            cloneBehaviour.SetDensity(Density);
+            cloneBehaviour.SetQuality(SamplingQuality);
 
-        return clone;
+            SetCuttingPlanes();
+            cloneBehaviour.SetCuttingPlanes();
+
+            return clone;
+        }
+        return null;
     }
 }
