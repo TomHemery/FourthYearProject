@@ -166,7 +166,9 @@
 							}
 							sampledAtLastPoint = true; //flag that we have actually taken a sample of the volume
 						}
-						else if (sampledAtLastPoint) { //if we stop sampling then we know that the ray has left the samplable area of the volume and we can stop the ray 
+						
+						
+						if (!sample && sampledAtLastPoint) { //if we stop sampling then we know that the ray has left the samplable area of the volume and we can stop the ray 
 							break;
 						}
 					}
@@ -179,8 +181,6 @@
 				if (_Red == 0) color.x = 0;
 				if (_Green == 0) color.y = 0;
 				if (_Blue == 0) color.z = 0;
-
-				//float3 res = );
 
 				//return the color
 				return color;
