@@ -19,6 +19,7 @@ public class ControllerGrabInteraction : MonoBehaviour
     private ControllerGrabInteraction otherHandInteraction;
 
     private static bool doTwoHandedGrab = false;
+    private static Vector3 twoHandedGrabOffset;
 
     private readonly float shakeThreshold = 0.45f;
     private readonly float ripThreshold = 0.6f;
@@ -43,7 +44,7 @@ public class ControllerGrabInteraction : MonoBehaviour
     {
         if (doTwoHandedGrab && this == rightHandInteraction)
         {
-            GrabbedTransform.position = (transform.position + otherHandInteraction.transform.position) / 2;
+            GrabbedTransform.position = (collisionBehaviour.transform.position + otherHandInteraction.collisionBehaviour.transform.position) / 2 + twoHandedGrabOffset;
 
             if (GrabbedTransform.gameObject.CompareTag("VolumeCube"))//if we are grabbing a volume cube
             {
@@ -51,9 +52,12 @@ public class ControllerGrabInteraction : MonoBehaviour
                 VolumeBehaviour volumeBehaviour = GrabbedTransform.GetComponent<VolumeBehaviour>();
                 if (dist > ripThreshold && volumeBehaviour.numActiveCuttingPlanes < volumeBehaviour.cuttingPlaneTransforms.Length)
                 {
-                    GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split(transform.position);
+                    GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split(collisionBehaviour.transform.position, GrabbedTransform.position - twoHandedGrabOffset);
 
-                    if (Vector3.Distance(newHalf.transform.position, transform.position) < Vector3.Distance(newHalf.transform.position, otherHandInteraction.transform.position)){
+                    VolumeBehaviour newHalfBehaviour = newHalf.GetComponent<VolumeBehaviour>();
+
+                    if (newHalfBehaviour.IsWorldPointInFrontOfCuttingPlane(collisionBehaviour.transform.position, newHalfBehaviour.numActiveCuttingPlanes - 1))
+                    {
                         GrabbedTransform.SetParent(otherHandInteraction.transform);
                         newHalf.transform.SetParent(transform);
                         GrabbedTransform = newHalf.transform;
@@ -111,6 +115,8 @@ public class ControllerGrabInteraction : MonoBehaviour
             {
                 doTwoHandedGrab = true;
                 GrabbedTransform.SetParent(null);
+                twoHandedGrabOffset = GrabbedTransform.position -
+                    (collisionBehaviour.transform.position + otherHandInteraction.collisionBehaviour.transform.position) / 2;
             }
         }
         //if we are holding a volume and we let go of the trigger then let go of it

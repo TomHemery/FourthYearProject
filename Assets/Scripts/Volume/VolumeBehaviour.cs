@@ -212,11 +212,9 @@ public class VolumeBehaviour : MonoBehaviour
         return texture;
     }
 
-    public GameObject Split(Vector3 target) {
+    public GameObject Split(Vector3 target, Vector3 splitCentre) {
         if (numActiveCuttingPlanes < MAX_CUTTING_PLANES)
         {
-            cuttingPlaneTransforms[numActiveCuttingPlanes].LookAt(target);
-
             GameObject clone = Instantiate(gameObject);
 
             VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
@@ -227,7 +225,12 @@ public class VolumeBehaviour : MonoBehaviour
             numActiveCuttingPlanes++;
             cloneBehaviour.numActiveCuttingPlanes++;
 
-            cloneBehaviour.cuttingPlaneTransforms[numActiveCuttingPlanes - 1].forward = -cuttingPlaneTransforms[numActiveCuttingPlanes - 1].forward;
+            int index = numActiveCuttingPlanes - 1;
+            cuttingPlaneTransforms[index].position = splitCentre;
+            cuttingPlaneTransforms[index].LookAt(target);
+            cloneBehaviour.cuttingPlaneTransforms[index].position = splitCentre;
+            cloneBehaviour.cuttingPlaneTransforms[index].LookAt(target);
+            cloneBehaviour.cuttingPlaneTransforms[index].forward *= -1;
 
             cloneBehaviour.SetRenderRed(RenderRed);
             cloneBehaviour.SetRenderGreen(RenderGreen);
@@ -243,5 +246,17 @@ public class VolumeBehaviour : MonoBehaviour
             return clone;
         }
         return null;
+    }
+
+    public bool IsWorldPointInFrontOfCuttingPlane(Vector3 point, int planeIndex) {
+        if (planeIndex < numActiveCuttingPlanes) {
+            point = transform.InverseTransformPoint(point);
+            Vector3 planePos = CuttingPlanePositions[planeIndex];
+            Vector3 planeNormal = CuttingPlaneNormals[planeIndex];
+            Vector3 between = point - planePos;
+            float test = Vector3.Dot(between, planeNormal);
+            return test > 1;
+        }
+        return false;
     }
 }
