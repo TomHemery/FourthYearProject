@@ -11,7 +11,6 @@ public class VolumeBehaviour : MonoBehaviour
 
     public static Texture3D VolumeTexture { get; private set; }
     private Material mMaterial;
-    private Texture2D[] slices;
 
     public static readonly string defaultFileName = "Head";
 
@@ -42,6 +41,7 @@ public class VolumeBehaviour : MonoBehaviour
     private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormals";
     private const string DO_CUTTING_TAG = "_DoCutting";
     private const string NUM_CUTTING_PLANES_TAG = "_NumCuttingPlanes";
+    private const string CUTTING_PLANE_TEX_TAG = "_CuttingPlaneTex";
 
     public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
     public const string CACHE_PATH = "/VolumetricCache/";
@@ -70,19 +70,12 @@ public class VolumeBehaviour : MonoBehaviour
         AllRenderingVolumes.Remove(this);
     }
 
-    private void Update()
-    {
-        if (DoCutting) {
-            SetCuttingPlanes();
-        }
-    }
-
     public void LoadVolume(string name)
     {
         if (CurrentVolumeName != name)
         {
             CurrentVolumeName = name;
-            VolumeTexture = LoadFromDisk(name);
+            VolumeTexture = LoadFromSecondaryStorage(name);
         }
 
         mMaterial = GetComponent<Renderer>().material;
@@ -99,7 +92,7 @@ public class VolumeBehaviour : MonoBehaviour
         SetDoOcclusion(true);
     }
 
-    Texture3D LoadFromDisk(string name) {
+    Texture3D LoadFromSecondaryStorage(string name) {
         string path = Directory.GetCurrentDirectory() + VOLUMETRIC_DATA_PATH + name;
         string[] slicePaths = Directory.GetFiles(path);
 
@@ -222,6 +215,7 @@ public class VolumeBehaviour : MonoBehaviour
 
             SetDoCutting(true);
             cloneBehaviour.SetDoCutting(true);
+
             numActiveCuttingPlanes++;
             cloneBehaviour.numActiveCuttingPlanes++;
 

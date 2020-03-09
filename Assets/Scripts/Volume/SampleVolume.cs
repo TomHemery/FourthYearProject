@@ -23,9 +23,6 @@ public class SampleVolume : MonoBehaviour
     /// <param name="neighbourhood">how wide to make the neighbourhood (1 = +/- 1 in each x y and z)</param>
     /// <returns>float density -> average density of the specified position and neighbourhood</returns>
     public float SampleVolumeDensityAt(Vector3 pos, int neighbourhood = 0) {
-
-        RelativePos = pos - half;
-
         Vector3 between;
         float test;
         //don't sample the volume if it is occluded by the occlusion plane
@@ -50,6 +47,17 @@ public class SampleVolume : MonoBehaviour
             
         }
 
+        return SampleUnconditionallyAt(pos, neighbourhood);
+    }
+
+    /// <summary>
+    /// Samples the volume attached to this game object (NB: O(neighbourhood^3))
+    /// </summary>
+    /// <param name="pos">position relative to the center of this object to be sampled </param>
+    /// <param name="neighbourhood">how wide to make the neighbourhood (1 = +/- 1 in each x y and z)</param>
+    /// <returns>float density -> average density of the specified position and neighbourhood</returns>
+    public float SampleUnconditionallyAt(Vector3 pos, int neighbourhood = 0) {
+        RelativePos = pos - half;
         //map relative position to an absolute texture position
         TexPos = new Vector3(RelativePos.x * VolumeBehaviour.VolumeTexture.width, RelativePos.y * VolumeBehaviour.VolumeTexture.height, RelativePos.z * VolumeBehaviour.VolumeTexture.depth);
 
@@ -65,7 +73,7 @@ public class SampleVolume : MonoBehaviour
                 {
                     numSamples++;
                     Color c = VolumeBehaviour.VolumeTexture.GetPixel(Mathf.FloorToInt(TexPos.x + x), Mathf.FloorToInt(TexPos.y + y), Mathf.FloorToInt(TexPos.z + z));
-                    value = (value * (numSamples - 1) + (c.r*0.3f + c.g*0.59f + c.b*0.11f)) / numSamples;
+                    value = (value * (numSamples - 1) + (c.r * 0.3f + c.g * 0.59f + c.b * 0.11f)) / numSamples;
                 }
             }
         }
