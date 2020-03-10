@@ -170,8 +170,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8aeb319469581c44be4559be2601116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CuttingPlanePos: {x: 0, y: 0, z: 0}
-  CuttingPlaneTransform: {fileID: 0}
+  particlePrefab: {fileID: 281030011295388052, guid: 099fd6ead7198c5488018359137aedf1,
+    type: 3}
+  numActiveCuttingPlanes: 0
+  cuttingPlaneTransforms:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &1309371162452278373
 GameObject:
   m_ObjectHideFlags: 0

@@ -84,6 +84,12 @@ public class SampleVolume : MonoBehaviour
         return value;
     }
 
+    public Color SampleColourAt(Vector3 pos) {
+        RelativePos = pos - half;
+        TexPos = new Vector3(RelativePos.x * VolumeBehaviour.VolumeTexture.width, RelativePos.y * VolumeBehaviour.VolumeTexture.height, RelativePos.z * VolumeBehaviour.VolumeTexture.depth);
+        return VolumeBehaviour.VolumeTexture.GetPixel(Mathf.FloorToInt(TexPos.x), Mathf.FloorToInt(TexPos.y), Mathf.FloorToInt(TexPos.z));
+    }
+
     public static float Map(float value, float start1, float stop1, float start2, float stop2)
     {
         return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));

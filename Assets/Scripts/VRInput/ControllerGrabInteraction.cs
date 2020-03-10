@@ -50,7 +50,7 @@ public class ControllerGrabInteraction : MonoBehaviour
             {
                 float dist = Vector3.Distance(transform.position, otherHandInteraction.transform.position);
                 VolumeBehaviour volumeBehaviour = GrabbedTransform.GetComponent<VolumeBehaviour>();
-                if (dist > ripThreshold && volumeBehaviour.numActiveCuttingPlanes < volumeBehaviour.cuttingPlaneTransforms.Length)
+                if (dist > ripThreshold && volumeBehaviour.numActiveCuttingPlanes < VolumeBehaviour.MAX_CUTTING_PLANES)
                 {
                     GameObject newHalf = GrabbedTransform.gameObject.GetComponent<VolumeBehaviour>().Split(collisionBehaviour.transform.position, GrabbedTransform.position - twoHandedGrabOffset);
 

@@ -8,21 +8,17 @@ public class VolumeBehaviour : MonoBehaviour
 {
     public static List<VolumeBehaviour> AllRenderingVolumes { get; private set; } = null;
     public static string CurrentVolumeName { get; private set; } = null;
-
     public static Texture3D VolumeTexture { get; private set; }
-    private Material mMaterial;
 
     public static readonly string defaultFileName = "Head";
-
+    public GameObject particlePrefab;
     public float Density { get; private set; } = 1;
     public float Threshold { get; private set; } = 0.0f;
     public int SamplingQuality { get; private set; } = 64;
     public Vector3 OcclusionPlanePos { get; private set; } = new Vector3(-100, 0, 0);
     public Vector3 OcclusionPlaneNormal { get; private set; } = new Vector3();
-
     public bool DoOcclusion { get; private set; } = false;
     public bool DoCutting { get; private set; } = false;
-
     public bool RenderRed { get; private set; } = true;
     public bool RenderGreen { get; private set; } = true;
     public bool RenderBlue { get; private set; } = true;
@@ -41,19 +37,20 @@ public class VolumeBehaviour : MonoBehaviour
     private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormals";
     private const string DO_CUTTING_TAG = "_DoCutting";
     private const string NUM_CUTTING_PLANES_TAG = "_NumCuttingPlanes";
-    private const string CUTTING_PLANE_TEX_TAG = "_CuttingPlaneTex";
-
     public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
     public const string CACHE_PATH = "/VolumetricCache/";
+    public const int MAX_CUTTING_PLANES = 5;
 
-    private const int MAX_CUTTING_PLANES = 5;
+    private Material mMaterial;
+    private SampleVolume mSampler;
+
     [HideInInspector]
     public int numActiveCuttingPlanes = 0;
     [HideInInspector]
-    public Transform [] cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
-
+    public Transform[] cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
     public Vector4[] CuttingPlanePositions { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
     public Vector4[] CuttingPlaneNormals { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+
 
     private void Awake()
     {
@@ -63,6 +60,7 @@ public class VolumeBehaviour : MonoBehaviour
 
         if (AllRenderingVolumes == null) AllRenderingVolumes = new List<VolumeBehaviour>();
         AllRenderingVolumes.Add(this);
+        mSampler = gameObject.GetComponent<SampleVolume>();
     }
 
     private void OnDestroy()
@@ -160,7 +158,7 @@ public class VolumeBehaviour : MonoBehaviour
         for (int i = 0; i < numActiveCuttingPlanes; i++)
         {
             CuttingPlanePositions[i] = transform.InverseTransformPoint(cuttingPlaneTransforms[i].position);
-            CuttingPlaneNormals[i] = transform.InverseTransformDirection(cuttingPlaneTransforms[i].forward);
+            CuttingPlaneNormals[i] = transform.InverseTransformDirection(cuttingPlaneTransforms[i].forward).normalized;
         }
 
         mMaterial.SetVectorArray(CUTTING_PLANE_TAG, CuttingPlanePositions);
@@ -236,6 +234,15 @@ public class VolumeBehaviour : MonoBehaviour
 
             SetCuttingPlanes();
             cloneBehaviour.SetCuttingPlanes();
+
+            GameObject particles = Instantiate(particlePrefab, transform.position, Quaternion.identity);
+            particles.transform.LookAt(target);
+
+            ParticleSystem particleSystem = particles.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule settings = particleSystem.main;
+            Color c = mSampler.SampleColourAt(transform.position - splitCentre);
+            c.a = 1.0f;
+            settings.startColor = new ParticleSystem.MinMaxGradient(c);
 
             return clone;
         }
