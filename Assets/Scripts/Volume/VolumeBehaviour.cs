@@ -8,13 +8,11 @@ public class VolumeBehaviour : MonoBehaviour
 {
     public static List<VolumeBehaviour> AllRenderingVolumes { get; private set; } = null;
     public static string CurrentVolumeName { get; private set; } = null;
+    public static VolumeSettings Settings;
     public static Texture3D VolumeTexture { get; private set; }
 
     public static readonly string defaultFileName = "Head";
     public GameObject particlePrefab;
-    public float Density { get; private set; } = 1;
-    public float Threshold { get; private set; } = 0.0f;
-    public int SamplingQuality { get; private set; } = 64;
     public Vector3 OcclusionPlanePos { get; private set; } = new Vector3(-100, 0, 0);
     public Vector3 OcclusionPlaneNormal { get; private set; } = new Vector3();
     public bool DoOcclusion { get; private set; } = false;
@@ -58,9 +56,17 @@ public class VolumeBehaviour : MonoBehaviour
             cuttingPlaneTransforms[i] = transform.GetChild(i);
         }
 
-        if (AllRenderingVolumes == null) AllRenderingVolumes = new List<VolumeBehaviour>();
+        if (AllRenderingVolumes == null)
+        {
+            AllRenderingVolumes = new List<VolumeBehaviour>();
+            Settings = new VolumeSettings();
+            Settings.density = 1.0f;
+            Settings.samplingQuality = 64;
+            Settings.threshold = 0.0f;
+        }
         AllRenderingVolumes.Add(this);
         mSampler = gameObject.GetComponent<SampleVolume>();
+        mMaterial = GetComponent<Renderer>().material;
     }
 
     private void OnDestroy()
@@ -72,22 +78,39 @@ public class VolumeBehaviour : MonoBehaviour
     {
         if (CurrentVolumeName != name)
         {
+            Debug.Log("Loading: " + name);
             CurrentVolumeName = name;
             VolumeTexture = LoadFromSecondaryStorage(name);
+            InitSettings();
         }
+        else
+        {
+            InitMaterial();
+        }
+        
+    }
 
-        mMaterial = GetComponent<Renderer>().material;
+    public void InitSettings() {
+        Settings = SettingsManager.LoadSettingsFromXML(CurrentVolumeName);
+        InitMaterial();
+    }
+
+    public void InitMaterial() {
         mMaterial.SetTexture(MAIN_TEXTURE_TAG, VolumeTexture);
 
-        mMaterial.SetFloat(DENSITY_TAG, Density);
-        mMaterial.SetFloat(THRESHOLD_TAG, Threshold);
-        mMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
+        mMaterial.SetFloat(DENSITY_TAG, Settings.density);
+        mMaterial.SetFloat(THRESHOLD_TAG, Settings.threshold);
+        mMaterial.SetInt(SAMPLE_QUALITY_TAG, Settings.samplingQuality);
 
         mMaterial.SetInt(RED_TAG, 1);
         mMaterial.SetInt(BLUE_TAG, 1);
         mMaterial.SetInt(GREEN_TAG, 1);
 
         SetDoOcclusion(true);
+
+        SliderListener.Instance.SetDensityValue(Settings.density);
+        SliderListener.Instance.SetThresholdValue(Settings.threshold);
+        SliderListener.Instance.SetQualityValue(Settings.samplingQuality);
     }
 
     Texture3D LoadFromSecondaryStorage(string name) {
@@ -112,21 +135,20 @@ public class VolumeBehaviour : MonoBehaviour
 
     public void SetDensity(float d)
     {
-        Density = d;
         mMaterial.SetFloat(DENSITY_TAG, d);
-
+        Settings.density = d;
     }
 
     public void SetThreshold(float t)
     {
-        Threshold = t;
         mMaterial.SetFloat(THRESHOLD_TAG, t);
+        Settings.threshold = t;
     }
 
     public void SetQuality(int q)
     {
-        SamplingQuality = q;
         mMaterial.SetFloat(SAMPLE_QUALITY_TAG, q);
+        Settings.samplingQuality = q;
     }
 
     public void SetRenderRed(bool r)
@@ -209,7 +231,7 @@ public class VolumeBehaviour : MonoBehaviour
             GameObject clone = Instantiate(gameObject);
 
             VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
-            cloneBehaviour.LoadVolume(CurrentVolumeName);
+            cloneBehaviour.InitMaterial();
 
             SetDoCutting(true);
             cloneBehaviour.SetDoCutting(true);
@@ -227,10 +249,6 @@ public class VolumeBehaviour : MonoBehaviour
             cloneBehaviour.SetRenderRed(RenderRed);
             cloneBehaviour.SetRenderGreen(RenderGreen);
             cloneBehaviour.SetRenderBlue(RenderBlue);
-
-            cloneBehaviour.SetThreshold(Threshold);
-            cloneBehaviour.SetDensity(Density);
-            cloneBehaviour.SetQuality(SamplingQuality);
 
             SetCuttingPlanes();
             cloneBehaviour.SetCuttingPlanes();

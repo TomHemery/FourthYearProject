@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class SliderListener : MonoBehaviour
 {
+    public static SliderListener Instance { get; private set; } = null;
 
     public Slider DensitySlider;
     public Slider QualitySlider;
@@ -14,11 +15,16 @@ public class SliderListener : MonoBehaviour
     public Text QualityText;
     public Text ThresholdText;
 
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
+
     void Start()
     {
-        OnDensitySliderChanged();
-        OnQualitySliderChanged();
-        OnThresholdSliderChanged();
+        DensityText.text = "" + DensitySlider.value;
+        QualityText.text = "" + QualitySlider.value;
+        ThresholdText.text = "" + ThresholdSlider.value;
     }
 
     public void OnDensitySliderChanged() {
@@ -34,5 +40,17 @@ public class SliderListener : MonoBehaviour
     public void OnThresholdSliderChanged() {
         foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) v.SetThreshold(ThresholdSlider.value);
         ThresholdText.text = "" + ThresholdSlider.value;
+    }
+
+    public void SetDensityValue(float density) {
+        DensitySlider.value = density;
+    }
+
+    public void SetQualityValue(int quality) {
+        QualitySlider.value = quality;
+    }
+
+    public void SetThresholdValue(float threshold) {
+        ThresholdSlider.value = threshold;
     }
 }

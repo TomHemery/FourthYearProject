@@ -79,7 +79,7 @@ public class SampleVolume : MonoBehaviour
         }
 
         //don't sample if we find that brightness is less than the rendering threshold set in the volume manager 
-        if (value < mVolumeBehaviour.Threshold) value = 0;
+        if (value < VolumeBehaviour.Settings.threshold) value = 0;
 
         return value;
     }

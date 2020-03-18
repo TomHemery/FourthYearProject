@@ -37,13 +37,13 @@ public class VolumeDropdownManager : MonoBehaviour
         {
             dropdown.value = startIndex;
         }
-        OnSelectOption();
     }
 
     /// <summary>
     /// Loads the selected volume from the dropdown into all present volume renderers
     /// </summary>
-    private void OnSelectOption() {
+    public void OnSelectOption() {
+        Debug.Log("Volume option selected");
         ViewResetter.Instance.OnResetViewButtonPressed();
         foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) v.LoadVolume(dropdown.options[dropdown.value].text);
     }
