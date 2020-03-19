@@ -21,33 +21,23 @@ public class ViewResetter : MonoBehaviour
     private Quaternion occlusionPlaneStartRotation;
     public GameObject occlusionPlane;
 
-    private float startDensity;
-    private float startThreshold;
-    private float startQuality;
-
     public static ViewResetter Instance { get; private set; } = null;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        startDensity = DensitySlider.value;
-        startQuality = QualitySlider.value;
-        startThreshold = ThresholdSider.value;
 
         occlusionPlaneStartPosition = occlusionPlane.transform.position;
         occlusionPlaneStartRotation = occlusionPlane.transform.rotation;
     }
 
     public void OnResetViewButtonPressed() {
-        DensitySlider.value = startDensity;
-        QualitySlider.value = startQuality;
-        ThresholdSider.value = startThreshold;
         occlusionPlane.transform.position = occlusionPlaneStartPosition;
         occlusionPlane.transform.rotation = occlusionPlaneStartRotation;
         foreach (VolumeBehaviour v in VolumeBehaviour.AllRenderingVolumes) Destroy(v.gameObject);
         GameObject newVol = Instantiate(VolumeCubePrefab);
         newVol.GetComponent<VolumeBehaviour>().LoadVolume(VolumeBehaviour.CurrentVolumeName);
-
+        newVol.GetComponent<VolumeBehaviour>().InitSettings();
         RedToggle.isOn = true;
         BlueToggle.isOn = true;
         GreenToggle.isOn = true;

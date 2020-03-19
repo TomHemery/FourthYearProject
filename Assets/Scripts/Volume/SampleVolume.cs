@@ -23,9 +23,6 @@ public class SampleVolume : MonoBehaviour
     /// <param name="neighbourhood">how wide to make the neighbourhood (1 = +/- 1 in each x y and z)</param>
     /// <returns>float density -> average density of the specified position and neighbourhood</returns>
     public float SampleVolumeDensityAt(Vector3 pos, int neighbourhood = 0) {
-
-        RelativePos = pos - half;
-
         Vector3 between;
         float test;
         //don't sample the volume if it is occluded by the occlusion plane
@@ -38,12 +35,29 @@ public class SampleVolume : MonoBehaviour
 
         if (mVolumeBehaviour.DoCutting)
         {
-            //don't sample the volume if it is occluded by the cutting plane 
-            between = pos - mVolumeBehaviour.CuttingPlanePos;
-            test = Vector3.Dot(between, mVolumeBehaviour.CuttingPlaneNormal);
-            if (test <= 0) return 0;
+            //don't sample the volume if it is occluded by a cutting plane 
+            for (int i = 0; i < mVolumeBehaviour.numActiveCuttingPlanes; i++) {
+                Vector3 planePos = mVolumeBehaviour.CuttingPlanePositions[i];
+                Vector3 planeNormal = mVolumeBehaviour.CuttingPlaneNormals[i];
+                between = pos - planePos;
+                test = Vector3.Dot(between, planeNormal);
+                if (test <= 0) return 0;
+            }
+            
+            
         }
 
+        return SampleUnconditionallyAt(pos, neighbourhood);
+    }
+
+    /// <summary>
+    /// Samples the volume attached to this game object (NB: O(neighbourhood^3))
+    /// </summary>
+    /// <param name="pos">position relative to the center of this object to be sampled </param>
+    /// <param name="neighbourhood">how wide to make the neighbourhood (1 = +/- 1 in each x y and z)</param>
+    /// <returns>float density -> average density of the specified position and neighbourhood</returns>
+    public float SampleUnconditionallyAt(Vector3 pos, int neighbourhood = 0) {
+        RelativePos = pos - half;
         //map relative position to an absolute texture position
         TexPos = new Vector3(RelativePos.x * VolumeBehaviour.VolumeTexture.width, RelativePos.y * VolumeBehaviour.VolumeTexture.height, RelativePos.z * VolumeBehaviour.VolumeTexture.depth);
 
@@ -59,15 +73,21 @@ public class SampleVolume : MonoBehaviour
                 {
                     numSamples++;
                     Color c = VolumeBehaviour.VolumeTexture.GetPixel(Mathf.FloorToInt(TexPos.x + x), Mathf.FloorToInt(TexPos.y + y), Mathf.FloorToInt(TexPos.z + z));
-                    value = (value * (numSamples - 1) + (c.r*0.3f + c.g*0.59f + c.b*0.11f)) / numSamples;
+                    value = (value * (numSamples - 1) + (c.r * 0.3f + c.g * 0.59f + c.b * 0.11f)) / numSamples;
                 }
             }
         }
 
         //don't sample if we find that brightness is less than the rendering threshold set in the volume manager 
-        if (value < mVolumeBehaviour.Threshold) value = 0;
+        if (value < VolumeBehaviour.Settings.threshold) value = 0;
 
         return value;
+    }
+
+    public Color SampleColourAt(Vector3 pos) {
+        RelativePos = pos - half;
+        TexPos = new Vector3(RelativePos.x * VolumeBehaviour.VolumeTexture.width, RelativePos.y * VolumeBehaviour.VolumeTexture.height, RelativePos.z * VolumeBehaviour.VolumeTexture.depth);
+        return VolumeBehaviour.VolumeTexture.GetPixel(Mathf.FloorToInt(TexPos.x), Mathf.FloorToInt(TexPos.y), Mathf.FloorToInt(TexPos.z));
     }
 
     public static float Map(float value, float start1, float stop1, float start2, float stop2)

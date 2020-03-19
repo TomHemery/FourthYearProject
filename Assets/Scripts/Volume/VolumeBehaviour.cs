@@ -8,30 +8,18 @@ public class VolumeBehaviour : MonoBehaviour
 {
     public static List<VolumeBehaviour> AllRenderingVolumes { get; private set; } = null;
     public static string CurrentVolumeName { get; private set; } = null;
-
+    public static VolumeSettings Settings;
     public static Texture3D VolumeTexture { get; private set; }
-    private Material mMaterial;
-    private Texture2D[] slices;
 
     public static readonly string defaultFileName = "Head";
-
-    public float Density { get; private set; } = 1;
-    public float Threshold { get; private set; } = 0.0f;
-    public int SamplingQuality { get; private set; } = 64;
+    public GameObject particlePrefab;
     public Vector3 OcclusionPlanePos { get; private set; } = new Vector3(-100, 0, 0);
     public Vector3 OcclusionPlaneNormal { get; private set; } = new Vector3();
-
-    public Vector3 CuttingPlanePos = new Vector3();
-    public Vector3 CuttingPlaneNormal { get; private set; } = new Vector3();
     public bool DoOcclusion { get; private set; } = false;
     public bool DoCutting { get; private set; } = false;
-
     public bool RenderRed { get; private set; } = true;
     public bool RenderGreen { get; private set; } = true;
     public bool RenderBlue { get; private set; } = true;
-
-    [HideInInspector]
-    public Transform CuttingPlaneTransform;
 
     public const string MAIN_TEXTURE_TAG = "_MainTex";
     private const string DENSITY_TAG = "_Density";
@@ -43,18 +31,42 @@ public class VolumeBehaviour : MonoBehaviour
     private const string OCCLUSION_POS_TAG = "_OcclusionPlanePos";
     private const string OCCLUSION_NORMAL_TAG = "_OcclusionPlaneNormal";
     private const string DO_OCCLUSION_TAG = "_DoOcclusion";
-    private const string CUTTING_PLANE_TAG = "_CuttingPlanePos";
-    private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormal";
+    private const string CUTTING_PLANE_TAG = "_CuttingPlanePositions";
+    private const string CUTTING_NORMAL_TAG = "_CuttingPlaneNormals";
     private const string DO_CUTTING_TAG = "_DoCutting";
-
+    private const string NUM_CUTTING_PLANES_TAG = "_NumCuttingPlanes";
     public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
     public const string CACHE_PATH = "/VolumetricCache/";
+    public const int MAX_CUTTING_PLANES = 5;
+
+    private Material mMaterial;
+    private SampleVolume mSampler;
+
+    [HideInInspector]
+    public int numActiveCuttingPlanes = 0;
+    [HideInInspector]
+    public Transform[] cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
+    public Vector4[] CuttingPlanePositions { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+    public Vector4[] CuttingPlaneNormals { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+
 
     private void Awake()
     {
-        CuttingPlaneTransform = transform.GetChild(0);
-        if (AllRenderingVolumes == null) AllRenderingVolumes = new List<VolumeBehaviour>();
+        for (int i = 0; i < transform.childCount; i++) {
+            cuttingPlaneTransforms[i] = transform.GetChild(i);
+        }
+
+        if (AllRenderingVolumes == null)
+        {
+            AllRenderingVolumes = new List<VolumeBehaviour>();
+            Settings = new VolumeSettings();
+            Settings.density = 1.0f;
+            Settings.samplingQuality = 64;
+            Settings.threshold = 0.0f;
+        }
         AllRenderingVolumes.Add(this);
+        mSampler = gameObject.GetComponent<SampleVolume>();
+        mMaterial = GetComponent<Renderer>().material;
     }
 
     private void OnDestroy()
@@ -62,25 +74,33 @@ public class VolumeBehaviour : MonoBehaviour
         AllRenderingVolumes.Remove(this);
     }
 
-    private void Update()
-    {
-        if (DoCutting) SetCuttingPlane(CuttingPlaneTransform.position, CuttingPlaneTransform.forward);
-    }
-
     public void LoadVolume(string name)
     {
         if (CurrentVolumeName != name)
         {
+            Debug.Log("Loading: " + name);
             CurrentVolumeName = name;
-            VolumeTexture = LoadFromDisk(name);
+            VolumeTexture = LoadFromSecondaryStorage(name);
+            InitSettings();
         }
+        else
+        {
+            InitMaterial();
+        }
+        
+    }
 
-        mMaterial = GetComponent<Renderer>().material;
+    public void InitSettings() {
+        Settings = SettingsManager.LoadSettingsFromXML(CurrentVolumeName);
+        InitMaterial();
+    }
+
+    public void InitMaterial() {
         mMaterial.SetTexture(MAIN_TEXTURE_TAG, VolumeTexture);
 
-        mMaterial.SetFloat(DENSITY_TAG, Density);
-        mMaterial.SetFloat(THRESHOLD_TAG, Threshold);
-        mMaterial.SetInt(SAMPLE_QUALITY_TAG, SamplingQuality);
+        mMaterial.SetFloat(DENSITY_TAG, Settings.density);
+        mMaterial.SetFloat(THRESHOLD_TAG, Settings.threshold);
+        mMaterial.SetInt(SAMPLE_QUALITY_TAG, Settings.samplingQuality);
 
         mMaterial.SetInt(RED_TAG, 1);
         mMaterial.SetInt(BLUE_TAG, 1);
@@ -88,11 +108,12 @@ public class VolumeBehaviour : MonoBehaviour
 
         SetDoOcclusion(true);
 
-        //could uncomment this line if memory usage is an issue, but it's much much faster if you don't 
-        //Resources.UnloadUnusedAssets();
+        SliderListener.Instance.SetDensityValue(Settings.density);
+        SliderListener.Instance.SetThresholdValue(Settings.threshold);
+        SliderListener.Instance.SetQualityValue(Settings.samplingQuality);
     }
 
-    Texture3D LoadFromDisk(string name) {
+    Texture3D LoadFromSecondaryStorage(string name) {
         string path = Directory.GetCurrentDirectory() + VOLUMETRIC_DATA_PATH + name;
         string[] slicePaths = Directory.GetFiles(path);
 
@@ -114,21 +135,20 @@ public class VolumeBehaviour : MonoBehaviour
 
     public void SetDensity(float d)
     {
-        Density = d;
         mMaterial.SetFloat(DENSITY_TAG, d);
-
+        Settings.density = d;
     }
 
     public void SetThreshold(float t)
     {
-        Threshold = t;
         mMaterial.SetFloat(THRESHOLD_TAG, t);
+        Settings.threshold = t;
     }
 
     public void SetQuality(int q)
     {
-        SamplingQuality = q;
         mMaterial.SetFloat(SAMPLE_QUALITY_TAG, q);
+        Settings.samplingQuality = q;
     }
 
     public void SetRenderRed(bool r)
@@ -156,11 +176,16 @@ public class VolumeBehaviour : MonoBehaviour
         mMaterial.SetVector(OCCLUSION_NORMAL_TAG, OcclusionPlaneNormal);
     }
 
-    public void SetCuttingPlane(Vector3 planePos, Vector3 planeNormal) {
-        CuttingPlanePos = transform.InverseTransformPoint(planePos);
-        CuttingPlaneNormal = transform.InverseTransformDirection(planeNormal);
-        mMaterial.SetVector(CUTTING_PLANE_TAG, CuttingPlanePos);
-        mMaterial.SetVector(CUTTING_NORMAL_TAG, CuttingPlaneNormal);
+    public void SetCuttingPlanes() {
+        for (int i = 0; i < numActiveCuttingPlanes; i++)
+        {
+            CuttingPlanePositions[i] = transform.InverseTransformPoint(cuttingPlaneTransforms[i].position);
+            CuttingPlaneNormals[i] = transform.InverseTransformDirection(cuttingPlaneTransforms[i].forward).normalized;
+        }
+
+        mMaterial.SetVectorArray(CUTTING_PLANE_TAG, CuttingPlanePositions);
+        mMaterial.SetVectorArray(CUTTING_NORMAL_TAG, CuttingPlaneNormals);
+        mMaterial.SetInt(NUM_CUTTING_PLANES_TAG, numActiveCuttingPlanes);
     }
 
     public void SetDoOcclusion(bool doOcclusion)
@@ -200,30 +225,57 @@ public class VolumeBehaviour : MonoBehaviour
         return texture;
     }
 
-    public GameObject Split() {
-        GameObject clone = Instantiate(gameObject);
+    public GameObject Split(Vector3 target, Vector3 splitCentre) {
+        if (numActiveCuttingPlanes < MAX_CUTTING_PLANES)
+        {
+            GameObject clone = Instantiate(gameObject);
 
-        clone.GetComponent<VolumeBehaviour>().LoadVolume(CurrentVolumeName);
-        clone.GetComponent<VolumeBehaviour>().CuttingPlaneTransform.Rotate(0, 180, 0);
+            VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
+            cloneBehaviour.InitMaterial();
 
-        Vector3 offset = CuttingPlaneTransform.forward * 0.1f;
-        clone.transform.position -= offset;
-        transform.position += offset;
+            SetDoCutting(true);
+            cloneBehaviour.SetDoCutting(true);
 
-        SetDoCutting(true);
-        VolumeBehaviour cloneBehaviour = clone.GetComponent<VolumeBehaviour>();
-        cloneBehaviour.SetDoCutting(true);
+            numActiveCuttingPlanes++;
+            cloneBehaviour.numActiveCuttingPlanes++;
 
-        cloneBehaviour.SetRenderRed(RenderRed);
-        cloneBehaviour.SetRenderGreen(RenderGreen);
-        cloneBehaviour.SetRenderBlue(RenderBlue);
+            int index = numActiveCuttingPlanes - 1;
+            cuttingPlaneTransforms[index].position = splitCentre;
+            cuttingPlaneTransforms[index].LookAt(target);
+            cloneBehaviour.cuttingPlaneTransforms[index].position = splitCentre;
+            cloneBehaviour.cuttingPlaneTransforms[index].LookAt(target);
+            cloneBehaviour.cuttingPlaneTransforms[index].forward *= -1;
 
-        cloneBehaviour.SetThreshold(Threshold);
-        cloneBehaviour.SetDensity(Density);
-        cloneBehaviour.SetQuality(SamplingQuality);
+            cloneBehaviour.SetRenderRed(RenderRed);
+            cloneBehaviour.SetRenderGreen(RenderGreen);
+            cloneBehaviour.SetRenderBlue(RenderBlue);
 
-        clone.GetComponent<VolumeBehaviour>().SetDoCutting(true);
+            SetCuttingPlanes();
+            cloneBehaviour.SetCuttingPlanes();
 
-        return clone;
+            GameObject particles = Instantiate(particlePrefab, transform.position, Quaternion.identity);
+            particles.transform.LookAt(target);
+
+            ParticleSystem particleSystem = particles.GetComponent<ParticleSystem>();
+            ParticleSystem.MainModule settings = particleSystem.main;
+            Color c = mSampler.SampleColourAt(transform.position - splitCentre);
+            c.a = 1.0f;
+            settings.startColor = new ParticleSystem.MinMaxGradient(c);
+
+            return clone;
+        }
+        return null;
+    }
+
+    public bool IsWorldPointInFrontOfCuttingPlane(Vector3 point, int planeIndex) {
+        if (planeIndex < numActiveCuttingPlanes) {
+            point = transform.InverseTransformPoint(point);
+            Vector3 planePos = CuttingPlanePositions[planeIndex];
+            Vector3 planeNormal = CuttingPlaneNormals[planeIndex];
+            Vector3 between = point - planePos;
+            float test = Vector3.Dot(between, planeNormal);
+            return test > 1;
+        }
+        return false;
     }
 }
