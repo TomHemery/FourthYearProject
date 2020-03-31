@@ -69,6 +69,11 @@ public class VolumeBehaviour : MonoBehaviour
         mMaterial = GetComponent<Renderer>().material;
     }
 
+    private void Start()
+    {
+        LoadVolume("head");
+    }
+
     private void OnDestroy()
     {
         AllRenderingVolumes.Remove(this);
@@ -108,9 +113,9 @@ public class VolumeBehaviour : MonoBehaviour
 
         SetDoOcclusion(true);
 
-        SliderListener.Instance.SetDensityValue(Settings.density);
-        SliderListener.Instance.SetThresholdValue(Settings.threshold);
-        SliderListener.Instance.SetQualityValue(Settings.samplingQuality);
+        //SliderListener.Instance.SetDensityValue(Settings.density);
+        //SliderListener.Instance.SetThresholdValue(Settings.threshold);
+        //SliderListener.Instance.SetQualityValue(Settings.samplingQuality);
     }
 
     Texture3D LoadFromSecondaryStorage(string name) {
