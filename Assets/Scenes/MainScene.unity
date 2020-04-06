@@ -581,19 +581,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5449bff0d89157347b9038bca5e3f703, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandGrab: {fileID: 0}
-  rightHandGrab: {fileID: 0}
-  normalColour:
-    r: 1
-    g: 1
-    b: 1
-    a: 0.5882353
-  hoverColour:
-    r: 1
-    g: 0
-    b: 0
-    a: 0.5882353
-  m_material: {fileID: 0}
 --- !u!65 &2534866581150788765
 BoxCollider:
   m_ObjectHideFlags: 0

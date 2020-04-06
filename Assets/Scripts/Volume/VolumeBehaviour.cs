@@ -37,7 +37,9 @@ public class VolumeBehaviour : MonoBehaviour
     private const string NUM_CUTTING_PLANES_TAG = "_NumCuttingPlanes";
     public const string VOLUMETRIC_DATA_PATH = "/VolumetricData/";
     public const string CACHE_PATH = "/VolumetricCache/";
-    public const int MAX_CUTTING_PLANES = 5;
+
+    [HideInInspector]
+    public const int MAX_CUTTING_PLANES = 10;
 
     private Material mMaterial;
     private SampleVolume mSampler;
@@ -45,15 +47,21 @@ public class VolumeBehaviour : MonoBehaviour
     [HideInInspector]
     public int numActiveCuttingPlanes = 0;
     [HideInInspector]
-    public Transform[] cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
-    public Vector4[] CuttingPlanePositions { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
-    public Vector4[] CuttingPlaneNormals { get; private set; } = new Vector4[MAX_CUTTING_PLANES];
+    public Transform[] cuttingPlaneTransforms;
+    public Vector4[] CuttingPlanePositions { get; private set; }
+    public Vector4[] CuttingPlaneNormals { get; private set; }
 
 
     private void Awake()
     {
-        for (int i = 0; i < transform.childCount; i++) {
-            cuttingPlaneTransforms[i] = transform.GetChild(i);
+        cuttingPlaneTransforms = new Transform[MAX_CUTTING_PLANES];
+        CuttingPlanePositions = new Vector4[MAX_CUTTING_PLANES];
+        CuttingPlaneNormals = new Vector4[MAX_CUTTING_PLANES];
+
+        for (int i = 0; i < MAX_CUTTING_PLANES; i++) {
+            Transform newCuttingPlane = new GameObject("CuttingPlane_" + i).transform;
+            newCuttingPlane.SetParent(transform);
+            cuttingPlaneTransforms[i] = newCuttingPlane;
         }
 
         if (AllRenderingVolumes == null)
@@ -93,6 +101,11 @@ public class VolumeBehaviour : MonoBehaviour
             InitMaterial();
         }
         
+    }
+
+    public void OnMouseDown()
+    {
+        Split((Camera.main.transform.position - transform.position).normalized, transform.position, 0.1f);
     }
 
     public void InitSettings() {
@@ -230,7 +243,7 @@ public class VolumeBehaviour : MonoBehaviour
         return texture;
     }
 
-    public GameObject Split(Vector3 target, Vector3 splitCentre) {
+    public GameObject Split(Vector3 target, Vector3 splitCentre, float offset=0) {
         if (numActiveCuttingPlanes < MAX_CUTTING_PLANES)
         {
             GameObject clone = Instantiate(gameObject);
@@ -266,6 +279,9 @@ public class VolumeBehaviour : MonoBehaviour
             Color c = mSampler.SampleColourAt(transform.position - splitCentre);
             c.a = 1.0f;
             settings.startColor = new ParticleSystem.MinMaxGradient(c);
+
+            transform.position += target * offset;
+            clone.transform.position -= target * offset;
 
             return clone;
         }

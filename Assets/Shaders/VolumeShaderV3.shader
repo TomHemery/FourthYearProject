@@ -46,7 +46,7 @@
 			int _DoOcclusion;
 
 			//information on cutting plane (slices volume in two - works the same as occlusion plane)
-			#define MAX_CUTTING_PLANES 5
+			#define MAX_CUTTING_PLANES 10
 			float4 _CuttingPlanePositions[MAX_CUTTING_PLANES];
 			float4 _CuttingPlaneNormals[MAX_CUTTING_PLANES];
 			int _NumCuttingPlanes;
@@ -143,7 +143,10 @@
 					if (distToCamera <= currDistToCamera)//if we aren't occluded by depth buffer objects
 					{
 						bool sample = true;
-						fixed4 mask = fixed4(0,0,0,0);
+
+						//mask is the sampled value at pos, only taken when necessary and only once
+						fixed4 mask;
+						bool maskTaken = false;
 
 						if (_DoOcclusion != 0) { //if we are considering the occlusion plane
 							//check if occluded by plane 
@@ -163,8 +166,10 @@
 
 							[unroll(MAX_CUTTING_PLANES)]
 							for (index; index < _NumCuttingPlanes; index++) {
+
 								float3 between = pos - _CuttingPlanePositions[index].xyz;
 								float val = dot(between, _CuttingPlaneNormals[index].xyz);
+
 								float dist = 10 * abs(val);
 
 								//lose material based on the side of the plane we're on, and the direction in which the plane is facing in world space
@@ -180,8 +185,12 @@
 											break;
 										}
 									}
-									//if we are quite far from the plane and our brightness is low (lower than the distance)
-									mask = tex3D(_MainTex, pos + 0.5f);
+
+									if (!maskTaken) {
+										mask = tex3D(_MainTex, pos + 0.5f);
+										maskTaken = true;
+									}
+
 									if (mask.a * ((mask.r + mask.g + mask.b) / 3) < dist || _CuttingPlaneNormals[index].x > 0)
 									{
 										sample = false;
@@ -190,22 +199,22 @@
 								}	
 								//we aren't occluded by the plane but we need to "scoop out" matter that got taken to the other side
 								else if(_CuttingPlaneNormals[index].x > 0) {
-									mask = tex3D(_MainTex, pos + 0.5f);
+									if (!maskTaken) {
+										mask = tex3D(_MainTex, pos + 0.5f);
+										maskTaken = true;
+									}
+
 									if (mask.a * ((mask.r + mask.g + mask.b) / 3) >= dist)
 									{
 										sample = false;
 										break;
 									}
 								}
-								else {
-									mask = tex3D(_MainTex, pos + 0.5f);
-								}
 							}
 						}
-						
-						else if (sample) mask = tex3D(_MainTex, pos + 0.5f);
 
 						if(sample) { //if we aren't occluded by the plane, or cut off
+							if(!maskTaken) mask = tex3D(_MainTex, pos + 0.5f);
 							if (mask.x * 0.3 + mask.y * 0.59 + mask.z * 0.11 * mask.w > _Threshold) { //check that brightness (ish) is bigger than threshold 
 								color.xyz += mask.xyz * mask.w;
 							}
