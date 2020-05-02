@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.fourthyearproject.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\psytah\\Unity Projects\\FourthYearProject\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "D:\\Unity Projects\\FourthYearProject\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "FourthYearProject [Testing]"
